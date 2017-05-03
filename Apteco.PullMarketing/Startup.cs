@@ -1,0 +1,77 @@
+﻿using ApiPager.AspNetCore.Swashbuckle;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.PlatformAbstractions;
+using Apteco.PullMarketing.ModelBinding;
+using Apteco.PullMarketing.Swagger;
+using Swashbuckle.AspNetCore.Swagger;
+
+namespace Apteco.PullMarketing
+{
+  public class Startup
+  {
+    public Startup(IHostingEnvironment env)
+    {
+      var builder = new ConfigurationBuilder()
+        .SetBasePath(env.ContentRootPath)
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+        .AddEnvironmentVariables();
+      Configuration = builder.Build();
+    }
+
+    public IConfigurationRoot Configuration { get; }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.AddMvc(properties =>
+      {
+        properties.ModelBinderProviders.Insert(0, new JsonModelBinderProvider());
+      });
+
+      services.AddSwaggerGen(c =>
+      {
+        c.SwaggerDoc("v1", new Info()
+        {
+          Version = "v1",
+          Title = "FastStats Pull Marketing Module",
+          Description = "An API to allow creating and fast retreval of information about records processed by FastStats",
+          TermsOfService = "None",
+          Contact = new Contact { Name = "Apteco Ltd", Email = "support@apteco.com", Url = "http://www.apteco.com" },
+          License = new License { Name = "Apache 2.0", Url = "https://github.com/Apteco/PullMarketing/blob/master/LICENSE" }
+        });
+
+        var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+
+        //Set the comments path for the swagger json and ui.
+        c.IncludeXmlComments(basePath + "\\Apteco.PullMarketing.xml");
+        c.DescribeAllEnumsAsStrings();
+        c.DescribeStringEnumsInCamelCase();
+        c.OperationFilter<FixFormInParameterFilter>();
+        c.OperationFilter<RemoveTextPlainContentTypeFilter>();
+        c.OperationFilter<OperationNameFilter>();
+        c.OperationFilter<AddFilterPageAndSortOperationFilter>();
+        c.OperationFilter<MultiPartFormDataWithFileFilter>();
+      });
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+    {
+      loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+      loggerFactory.AddDebug();
+
+      app.UseMvc();
+
+      app.UseSwagger();
+      app.UseSwaggerUI(c =>
+        {
+          c.SwaggerEndpoint("v1/swagger.json", "Pull Marketing API v1");
+        });
+    }
+  }
+}
