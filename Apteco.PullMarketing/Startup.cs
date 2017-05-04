@@ -1,4 +1,7 @@
 ﻿using ApiPager.AspNetCore.Swashbuckle;
+using Apteco.PullMarketing.Data;
+using Apteco.PullMarketing.Data.Dynamo;
+using Apteco.PullMarketing.Data.Mongo;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Apteco.PullMarketing.ModelBinding;
+using Apteco.PullMarketing.Services;
 using Apteco.PullMarketing.Swagger;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -20,6 +24,12 @@ namespace Apteco.PullMarketing
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
         .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
         .AddEnvironmentVariables();
+
+      if (env.IsDevelopment())
+      {
+        builder.AddUserSecrets<Startup>();
+      }
+
       Configuration = builder.Build();
     }
 
@@ -57,6 +67,28 @@ namespace Apteco.PullMarketing
         c.OperationFilter<AddFilterPageAndSortOperationFilter>();
         c.OperationFilter<MultiPartFormDataWithFileFilter>();
       });
+
+      services.AddOptions();
+      services.AddLogging();
+
+      var dynamoConnection = Configuration.GetSection("DynamoConnection");
+      var mongoConnection = Configuration.GetSection("MongoConnection");
+      if (dynamoConnection != null)
+      {
+        services.Configure<DynamoConnectionSettings>(dynamoConnection);
+
+        services.AddSingleton<IDataService, DynamoService>();
+      }
+      else if (mongoConnection != null)
+      {
+        services.Configure<MongoConnectionSettings>(mongoConnection);
+
+        services.AddSingleton<IDataService, MongoService>();
+      }
+      else
+      {
+        services.AddSingleton<IDataService, NullDataService>();
+      }
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

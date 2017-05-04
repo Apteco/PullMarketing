@@ -18,5 +18,10 @@ namespace Apteco.PullMarketing.Models.Records
     /// </summary>
     [Required]
     public string DestinationRecordFieldName { get; set; }
+
+    /// <summary>
+    /// Whether the given field is the primary key
+    /// </summary>
+    public bool IsPrimaryKeyField { get; set; }
   }
 }

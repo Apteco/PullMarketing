@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using ApiPager.Core;
 using ApiPager.Core.Models;
+using Apteco.PullMarketing.Data;
 using Microsoft.AspNetCore.Mvc;
 using Apteco.PullMarketing.ModelBinding;
+using Apteco.PullMarketing.Models;
 using Apteco.PullMarketing.Models.Records;
+using Apteco.PullMarketing.Services;
 
 namespace Apteco.PullMarketing.Controllers
 {
@@ -14,6 +19,13 @@ namespace Apteco.PullMarketing.Controllers
   [Route("api/[controller]")]
   public class RecordsController : Controller
   {
+    private IDataService dataService;
+
+    public RecordsController(IDataService dataService)
+    {
+      this.dataService = dataService;
+    }
+
     /// <summary>
     /// Returns the details of all the records
     /// </summary>
@@ -39,12 +51,33 @@ namespace Apteco.PullMarketing.Controllers
     /// <response code="200">Result details for the bulk upsert</response>
     /// <response code="400">A bad request</response>
     [ProducesResponseType(typeof(BulkUpsertRecordResults), 200)]
-    [ProducesResponseType(typeof(void), 400)]
+    [ProducesResponseType(typeof(ErrorMessages), 400)]
     [HttpPost("{dataStoreName}/BulkUpsertRecords", Name = "BulkUpsertRecords")]
     [MultiPartFormDataWithFile("file", "The file to bulk upsert")]
     public async Task<IActionResult> BulkUpsertRecords(string dataStoreName, BulkUpsertRecordsDetailsWithFile bulkUpsertRecordsDetailsWithFile)
     {
-      return new OkObjectResult(null);
+      if (bulkUpsertRecordsDetailsWithFile == null || bulkUpsertRecordsDetailsWithFile.File == null)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertDetailsSpecified, "No bulk upsert details provided")));
+
+      List<ErrorMessage> errors;
+      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsDetailsWithFile.BulkUpsertRecordsDetails, out errors);
+      if (errors.Count > 0)
+        return BadRequest(new ErrorMessages(errors));
+
+      UpsertResults upsertResults;
+      using (Stream stream = bulkUpsertRecordsDetailsWithFile.File.OpenReadStream())
+      {
+        upsertResults = await dataService.Upsert(stream, upsertDetails);
+      }
+
+      BulkUpsertRecordResults results = new BulkUpsertRecordResults()
+      {
+        DataStoreName = dataStoreName,
+        NumberOfRecordsUpserted = upsertResults.NumberOfRecordsUpserted,
+        NumberOfRecordsSkipped = upsertResults.NumberOfRecordsSkipped
+      };
+
+      return new OkObjectResult(results);
     }
 
     /// <summary>
@@ -56,11 +89,32 @@ namespace Apteco.PullMarketing.Controllers
     /// <response code="200">Result details for the bulk upsert</response>
     /// <response code="400">A bad request</response>
     [ProducesResponseType(typeof(BulkUpsertRecordResults), 200)]
-    [ProducesResponseType(typeof(void), 400)]
+    [ProducesResponseType(typeof(ErrorMessages), 400)]
     [HttpPost("{dataStoreName}/BulkUpsertRecordsFromFilePath", Name = "BulkUpsertRecordsFromFilePath")]
     public async Task<IActionResult> BulkUpsertRecordsFromFilePath(string dataStoreName, [FromBody]BulkUpsertRecordsFromFilePathDetails bulkUpsertRecordsFromFilePathDetails)
     {
-      return new OkObjectResult(null);
+      if (bulkUpsertRecordsFromFilePathDetails == null)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertDetailsSpecified, "No bulk upsert details provided")));
+
+      List<ErrorMessage> errors;
+      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsFromFilePathDetails, out errors);
+      if (errors.Count > 0)
+        return BadRequest(new ErrorMessages(errors));
+
+      UpsertResults upsertResults;
+      using (FileStream fileStream = new FileStream(bulkUpsertRecordsFromFilePathDetails.FilePath, FileMode.Open, FileAccess.Read))
+      {
+        upsertResults = await dataService.Upsert(fileStream, upsertDetails);
+      }
+
+      BulkUpsertRecordResults results = new BulkUpsertRecordResults()
+      {
+        DataStoreName = dataStoreName,
+        NumberOfRecordsUpserted = upsertResults.NumberOfRecordsUpserted,
+        NumberOfRecordsSkipped = upsertResults.NumberOfRecordsSkipped
+      };
+
+      return new OkObjectResult(results);
     }
 
     /// <summary>
@@ -173,6 +227,44 @@ namespace Apteco.PullMarketing.Controllers
     public async Task<IActionResult> DeleteRecordField(string dataStoreName, string key, string fieldName)
     {
       return NoContent();
+    }
+
+    private UpsertDetails CreateUpsertDetails(string dataStoreName, BulkUpsertRecordsDetails bulkUpsertRecordsDetails, out List<ErrorMessage> errors)
+    {
+      errors = new List<ErrorMessage>();
+
+      UpsertDetails upsertDetails = new UpsertDetails();
+      upsertDetails.TableName = dataStoreName;
+      upsertDetails.FileMetadata = new FileMetadata();
+      upsertDetails.FileMetadata.Delimiter = string.IsNullOrEmpty(bulkUpsertRecordsDetails.Delimiter)? 0 : bulkUpsertRecordsDetails.Delimiter[0];
+      upsertDetails.FileMetadata.Encoding = bulkUpsertRecordsDetails.Encoding.ToString();
+      upsertDetails.FileMetadata.Header = true;
+      upsertDetails.FileMetadata.MatchOnHeader = true;
+      upsertDetails.FileMetadata.Fields = new List<FieldMetadata>();
+      foreach (FieldMapping fieldMapping in bulkUpsertRecordsDetails.FieldMappings)
+      {
+        upsertDetails.FileMetadata.Fields.Add(new FieldMetadata()
+        {
+          ColumnName = fieldMapping.DestinationRecordFieldName,
+          HeaderName = fieldMapping.SourceFileFieldName
+        });
+
+        if (fieldMapping.IsPrimaryKeyField)
+        {
+          if (upsertDetails.PrimaryKeyFieldName != null)
+            errors.Add(new ErrorMessage(ErrorMessageCodes.MultiplePrimaryKeysSpecified, "More than one primary key has been specified"));
+
+          upsertDetails.PrimaryKeyFieldName = fieldMapping.DestinationRecordFieldName;
+        }
+      }
+
+      if (upsertDetails.PrimaryKeyFieldName == null)
+        errors.Add(new ErrorMessage(ErrorMessageCodes.MultiplePrimaryKeysSpecified, "No primary key has been specified"));
+
+      if (errors.Count > 0)
+        return null;
+
+      return upsertDetails;
     }
   }
 }

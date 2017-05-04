@@ -17,12 +17,12 @@ namespace Apteco.PullMarketing.Models.Records
     /// The number of records upserted
     /// </summary>
     [Required]
-    public int NumberOfRecordsUpserted { get; set; }
+    public long NumberOfRecordsUpserted { get; set; }
 
     /// <summary>
     /// The number of records skipped
     /// </summary>
     [Required]
-    public int NumberOfRecordsSkipped{ get; set; }
+    public long NumberOfRecordsSkipped { get; set; }
   }
 }
