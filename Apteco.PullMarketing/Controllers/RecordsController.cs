@@ -6,10 +6,10 @@ using ApiPager.Core;
 using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
 using Microsoft.AspNetCore.Mvc;
-using Apteco.PullMarketing.ModelBinding;
 using Apteco.PullMarketing.Models;
 using Apteco.PullMarketing.Models.Records;
 using Apteco.PullMarketing.Services;
+using Apteco.PullMarketing.Swagger;
 
 namespace Apteco.PullMarketing.Controllers
 {
