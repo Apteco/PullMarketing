@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using ApiPager.AspNetCore;
 using ApiPager.Core;
 using ApiPager.Core.Models;
+using Apteco.PullMarketing.Models;
 using Apteco.PullMarketing.Models.DataStores;
+using Apteco.PullMarketing.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Apteco.PullMarketing.Controllers
@@ -13,6 +18,15 @@ namespace Apteco.PullMarketing.Controllers
   [Route("api/[controller]")]
   public class DataStoresController : Controller
   {
+    private IDataService dataService;
+    private IRoutingService routingService;
+
+    public DataStoresController(IDataService dataService, IRoutingService routingService)
+    {
+      this.dataService = dataService;
+      this.routingService = routingService;
+    }
+
     /// <summary>
     /// Returns the details of all the defined data stores
     /// </summary>
@@ -25,7 +39,16 @@ namespace Apteco.PullMarketing.Controllers
     [CanFilterPageAndSort(new string[] { "Name", "PrimaryKeyFieldName" })]
     public async Task<IActionResult> GetDataStores()
     {
-      return new OkObjectResult(null);
+      FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
+      IEnumerable<Data.DataStore> dataStores = await dataService.GetDataStores(filterPageAndSortInfo);
+
+      PagedResults<DataStore> pagedResults = new PagedResults<DataStore>()
+      {
+        List = dataStores.Select(ds => (DataStore)ds).ToList()
+      };
+      pagedResults.SetFilterPageAndSortInfo(filterPageAndSortInfo);
+
+      return new OkObjectResult(pagedResults);
     }
 
     /// <summary>
@@ -42,10 +65,15 @@ namespace Apteco.PullMarketing.Controllers
     {
       if ((dataStore == null) || !ModelState.IsValid)
       {
-        return BadRequest();
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreDetailsProvided, "No data store details provided")));
       }
 
-      return new CreatedResult((Uri)null, null);
+      bool success = await dataService.CreateDataStore(dataStore);
+      if (!success)
+        throw new Exception("Failed to successfully create the data store");
+
+      Uri absoluteSelfUri = routingService.GetAbsoluteRouteUrl(this, "GetDataStoreDetails", new { name = dataStore.Name });
+      return new CreatedResult(absoluteSelfUri, dataStore);
     }
 
     /// <summary>
@@ -62,7 +90,14 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> GetDataStoreDetails(string name)
     {
-      return new OkObjectResult(null);
+      if (string.IsNullOrEmpty(name) || !ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      Data.DataStore dataStore = await dataService.GetDataStore(name);
+      if (dataStore == null)
+        return NotFound();
+
+      return new OkObjectResult((DataStore) dataStore);
     }
     
     /// <summary>
@@ -79,6 +114,13 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> DeleteDataStore(string name)
     {
+      if (string.IsNullOrEmpty(name) || !ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      bool success = await dataService.DeleteDataStore(name);
+      if (!success)
+        return NotFound();
+
       return NoContent();
     }
   }

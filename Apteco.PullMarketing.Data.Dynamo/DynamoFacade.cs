@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -28,37 +29,40 @@ namespace Apteco.PullMarketing.Data.Dynamo
     #endregion
 
     #region public methods
-    public async Task DeleteTable(string tableName)
+    public async Task<bool> DeleteTable(string tableName, int timeoutInSeconds)
 		{
 			//Connect
 			using (var client = Connect())
 			{
 				//Delete the table
-				try
-				{
-					logger.LogInformation("Deleting table " + tableName);
-					await client.DeleteTableAsync(tableName);
+			  try
+			  {
+			    logger.LogInformation("Deleting table " + tableName);
+			    var response = await client.DeleteTableAsync(tableName);
+			    if (response.TableDescription == null)
+			      return false;
 
-				  logger.LogInformation("Waiting for table " + tableName);
-
-					//Wait for deletion
-					while (true)
-					{
-						var tables = await client.ListTablesAsync();
-						var tableNames = tables.TableNames;
-
-						if (!tableNames.Contains(tableName))
-						{
-						  logger.LogInformation("Deleted table " + tableName);
-							break;
-						}
-					}
-				}
-				catch (ResourceNotFoundException) {}
+			    logger.LogInformation("Waiting for table " + tableName);
+			    bool success = await WaitForTableToBeDeleted(client, tableName, timeoutInSeconds);
+			    if (success)
+          {
+            logger.LogInformation("Table '" + tableName + "' was deleted");
+            return true;
+          }
+          else
+			    {
+			      logger.LogInformation("Table '" + tableName + "' was not deleted after " + timeoutInSeconds + " seconds");
+			      return false;
+			    }
+			  }
+			  catch (ResourceNotFoundException)
+			  {
+			    return false;
+			  }
 			}
 		}
 
-		public async Task CreateTable(string tableName, string primaryKeyFieldName)
+		public async Task<bool> CreateTable(string tableName, string primaryKeyFieldName, int timeoutInSeconds)
 		{
 			//Connect
 			using (var client = Connect())
@@ -79,15 +83,49 @@ namespace Apteco.PullMarketing.Data.Dynamo
 
 			  logger.LogInformation("Creating table '" + tableName + "'");
 
-				var response = await client.CreateTableAsync(createTableRequest);
+				await client.CreateTableAsync(createTableRequest);
 
-				await WaitForTableState(client, tableName, "ACTIVE");
+				bool success = await WaitForTableState(client, tableName, "ACTIVE", timeoutInSeconds);
 
-			  logger.LogInformation("Table '" + tableName + "' is now 'ACTIVE'");
-			}
+			  if (success)
+			  {
+			    logger.LogInformation("Table '" + tableName + "' is now 'ACTIVE'");
+			    return true;
+			  }
+			  else
+			  {
+			    logger.LogInformation("Table '" + tableName + "' did not become 'ACTIVE' active "+ timeoutInSeconds+" seconds");
+			    return false;
+			  }
+      }
 		}
-		
-		public async Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails)
+
+	  public async Task<List<DataStore>> GetDataStores()
+	  {
+	    using (var client = Connect())
+	    {
+        List<DataStore> dataStores = new List<DataStore>();
+	      var tables = await client.ListTablesAsync();
+	      foreach (string tableName in tables.TableNames)
+	      {
+	        DataStore dataStore = await GetDataStore(client, tableName);
+          if (dataStore != null)
+            dataStores.Add(dataStore);
+        }
+
+	      return dataStores;
+	    }
+	  }
+
+	  public async Task<DataStore> GetDataStore(string name)
+	  {
+	    using (var client = Connect())
+	    {
+       return await GetDataStore(client, name);
+	    }
+    }
+
+    public async Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails)
 		{
 			//Connect
 			using (var client = Connect())
@@ -141,29 +179,79 @@ namespace Apteco.PullMarketing.Data.Dynamo
     #endregion
 
     #region private methods
-    private async Task WaitForTableState(AmazonDynamoDBClient client, string tableName, string matchState)
+	  private async Task<DataStore> GetDataStore(AmazonDynamoDBClient client, string tableName)
 	  {
-	    string status = null;
-
-	    // Let us wait until table has the match state. Call DescribeTable.
-	    do
+	    try
 	    {
-	      logger.LogInformation("Waiting for table '" + tableName + "' to become 'ACTIVE'");
+	      var tableDetails = await client.DescribeTableAsync(tableName);
+	      if (tableDetails == null)
+	        return null;
 
-	      try
+	      var primaryKeySchema = tableDetails?.Table?.KeySchema?.FirstOrDefault(ks => ks.KeyType == KeyType.HASH);
+	      return new DataStore()
 	      {
-	        var res = await client.DescribeTableAsync(new DescribeTableRequest(tableName));
-	        status = res.Table.TableStatus;
-	      }
-	      catch (ResourceNotFoundException)
-	      {
-	        // DescribeTable is eventually consistent.  So we handle the potential exception.
-	      }
+	        Name = tableName,
+	        PrimaryKeyFieldName = primaryKeySchema?.AttributeName
+	      };
+	    }
+	    catch (ResourceNotFoundException)
+	    {
+	      return null;
+	    }
+	  }
 
-	      var delayTask = Task.Delay(1000);
+	  private async Task<bool> WaitForTableToBeDeleted(AmazonDynamoDBClient client, string tableName, int timeoutInSeconds)
+	  {
+	    bool success = await WaitForStatusWithTimeout(async () =>
+	      {
+	        var tables = await client.ListTablesAsync();
+	        var tableNames = tables.TableNames;
+
+	        return !tableNames.Contains(tableName);
+	      },
+	      TimeSpan.FromSeconds(1),
+	      TimeSpan.FromSeconds(timeoutInSeconds)
+	    );
+
+	    return success;
+    }
+
+    private async Task<bool> WaitForTableState(AmazonDynamoDBClient client, string tableName, string matchState, int timeoutInSeconds)
+	  {
+	    bool success = await WaitForStatusWithTimeout(async () =>
+        {
+          try
+          {
+            var res = await client.DescribeTableAsync(new DescribeTableRequest(tableName));
+            return res.Table.TableStatus == matchState;
+          }
+          catch (ResourceNotFoundException)
+          {
+            return false;
+          }
+        },
+	      TimeSpan.FromSeconds(1),
+	      TimeSpan.FromSeconds(timeoutInSeconds)
+	    );
+
+	    return success;
+	  }
+
+	  private async Task<bool> WaitForStatusWithTimeout(Func<Task<bool>> getStatusFunc, TimeSpan pollDelay, TimeSpan timeout)
+	  {
+      DateTime startTime = DateTime.Now;
+
+	    while((DateTime.Now - startTime) < timeout)
+	    {
+	      bool success = await getStatusFunc();
+	      if (success)
+	        return true;
+
+        var delayTask = Task.Delay(pollDelay);
 	      delayTask.Wait();
 	    }
-	    while (status != matchState);
+
+	    return false;
 	  }
 
     private UpsertResults RunUpdates(Stream stream, FileMetadata fileMetadata, ProvisionedThroughputDescription throughput, Table table)

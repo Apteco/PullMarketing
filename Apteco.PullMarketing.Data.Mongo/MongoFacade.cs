@@ -25,6 +25,26 @@ namespace Apteco.PullMarketing.Data.Mongo
     #endregion
 
     #region public methods
+    public async Task<List<DataStore>> GetDataStores()
+    {
+      throw new NotImplementedException();
+    }
+
+    public async Task<DataStore> GetDataStore(string name)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> CreateTable(string tableName, string primaryKeyFieldName, int timeoutInSeconds)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteTable(string tableName, int timeoutInSeconds)
+    {
+      throw new NotImplementedException();
+    }
+
     public async Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails)
 		{
 			var client = Connect();
