@@ -15,6 +15,14 @@ namespace Apteco.PullMarketing.Services
     Task<bool> DeleteDataStore(string name);
 
     Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails);
+    Task<List<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo);
+    Task<Record> GetRecord(string dataStoreName, string primaryKeyValue);
+    Task<bool> UpsertRecord(string dataStoreName, Record record);
+    Task<bool> DeleteRecord(string dataStoreName, string primaryKeyValue);
+    Task<Field> GetRecordField(string dataStoreName, string primaryKeyValue, string fieldName);
+    Task<bool> UpsertRecordField(string dataStoreName, string primaryKeyValue, Field field);
+    Task<bool> DeleteRecordField(string dataStoreName, string primaryKeyValue, string fieldName);
+
     #endregion
   }
 }

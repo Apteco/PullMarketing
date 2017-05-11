@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using ApiPager.AspNetCore;
 using ApiPager.Core;
 using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
@@ -10,6 +12,8 @@ using Apteco.PullMarketing.Models;
 using Apteco.PullMarketing.Models.Records;
 using Apteco.PullMarketing.Services;
 using Apteco.PullMarketing.Swagger;
+using Record = Apteco.PullMarketing.Models.Records.Record;
+using Field = Apteco.PullMarketing.Models.Records.Field;
 
 namespace Apteco.PullMarketing.Controllers
 {
@@ -20,10 +24,12 @@ namespace Apteco.PullMarketing.Controllers
   public class RecordsController : Controller
   {
     private IDataService dataService;
+    private IRoutingService routingService;
 
-    public RecordsController(IDataService dataService)
+    public RecordsController(IDataService dataService, IRoutingService routingService)
     {
       this.dataService = dataService;
+      this.routingService = routingService;
     }
 
     /// <summary>
@@ -39,7 +45,24 @@ namespace Apteco.PullMarketing.Controllers
     [CanFilterPageAndSort(new string[] { "Key" })]
     public async Task<IActionResult> GetRecords(string dataStoreName)
     {
-      return new OkObjectResult(null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
+      List<Data.Record> dataRecords = await dataService.GetRecords(dataStoreName, filterPageAndSortInfo);
+
+      PagedResults<Record> pagedResults = new PagedResults<Record>()
+      {
+        List = dataRecords.Select(r => new Record()
+          {
+            DataStoreName = dataStoreName,
+            Key = r.Key,
+            Fields = r.Fields.Select(f => new Field() { Key = f.Key, Value = f.Value }).ToList()
+          }).ToList()
+      };
+      pagedResults.SetFilterPageAndSortInfo(filterPageAndSortInfo);
+
+      return new OkObjectResult(pagedResults);
     }
 
     /// <summary>
@@ -56,8 +79,14 @@ namespace Apteco.PullMarketing.Controllers
     [MultiPartFormDataWithFile("file", "The file to bulk upsert")]
     public async Task<IActionResult> BulkUpsertRecords(string dataStoreName, BulkUpsertRecordsDetailsWithFile bulkUpsertRecordsDetailsWithFile)
     {
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
       if (bulkUpsertRecordsDetailsWithFile == null || bulkUpsertRecordsDetailsWithFile.File == null)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertDetailsSpecified, "No bulk upsert details provided")));
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
       List<ErrorMessage> errors;
       UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsDetailsWithFile.BulkUpsertRecordsDetails, out errors);
@@ -93,8 +122,14 @@ namespace Apteco.PullMarketing.Controllers
     [HttpPost("{dataStoreName}/BulkUpsertRecordsFromFilePath", Name = "BulkUpsertRecordsFromFilePath")]
     public async Task<IActionResult> BulkUpsertRecordsFromFilePath(string dataStoreName, [FromBody]BulkUpsertRecordsFromFilePathDetails bulkUpsertRecordsFromFilePathDetails)
     {
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
       if (bulkUpsertRecordsFromFilePathDetails == null)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertDetailsSpecified, "No bulk upsert details provided")));
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
       List<ErrorMessage> errors;
       UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsFromFilePathDetails, out errors);
@@ -132,7 +167,27 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> GetRecord(string dataStoreName, string key)
     {
-      return new OkObjectResult(null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      Data.Record dataRecord = await dataService.GetRecord(dataStoreName, key);
+      if (dataRecord == null)
+        return NotFound();
+
+      Record record = new Record()
+      {
+        DataStoreName = dataStoreName,
+        Key = dataRecord.Key,
+        Fields = dataRecord.Fields.Select(f => new Field() {Key = f.Key, Value = f.Value}).ToList()
+      };
+
+      return new OkObjectResult(record);
     }
 
     /// <summary>
@@ -145,11 +200,38 @@ namespace Apteco.PullMarketing.Controllers
     /// <response code="201">The upserted record details</response>
     /// <response code="400">A bad request</response>
     [HttpPut("{dataStoreName}/{key}", Name = "UpsertRecord")]
-    [ProducesResponseType(typeof(Field), 201)]
+    [ProducesResponseType(typeof(Record), 201)]
     [ProducesResponseType(typeof(void), 400)]
     public async Task<IActionResult> UpsertRecord(string dataStoreName, string key, [FromBody]UpsertRecordDetails record)
     {
-      return new CreatedResult((Uri)null, null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (record == null)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertRecordDetailsSpecified, "No record details provided")));
+
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      Data.Record dataRecord = new Data.Record()
+      {
+        Key = key,
+        Fields = record.Fields.Select(f => new Data.Field() {Key = f.Key, Value = f.Value}).ToList()
+      };
+
+      await dataService.UpsertRecord(dataStoreName, dataRecord);
+
+      Uri absoluteSelfUri = routingService.GetAbsoluteRouteUrl(this, "GetRecord", new { dataStoreName, key });
+      return new CreatedResult(absoluteSelfUri, new Record()
+      {
+        DataStoreName = dataStoreName,
+        Key = key,
+        Fields = record.Fields
+      });
     }
 
     /// <summary>
@@ -167,7 +249,20 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> DeleteRecord(string dataStoreName, string key)
     {
-      return new OkObjectResult(null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      bool success = await dataService.DeleteRecord(dataStoreName, key);
+      if (!success)
+        return NotFound();
+
+      return NoContent();
     }
 
     /// <summary>
@@ -186,10 +281,31 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> GetRecordField(string dataStoreName, string key, string fieldName)
     {
-      return new OkObjectResult(null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (string.IsNullOrEmpty(fieldName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoFieldNameSpecified, "No field name provided")));
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      Data.Field dataField = await dataService.GetRecordField(dataStoreName, key, fieldName);
+      if (dataField == null)
+        return NotFound();
+
+      Field field = new Field()
+      {
+        Key = dataField.Key,
+        Value = dataField.Value
+      };
+
+      return new OkObjectResult(field);
     }
-
-
+    
     /// <summary>
     /// Upserts a particular field for the specified record
     /// </summary>
@@ -207,7 +323,35 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> UpsertRecordField(string dataStoreName, string key, string fieldName, [FromBody]string value)
     {
-      return new CreatedResult((Uri)null, null);
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (string.IsNullOrEmpty(fieldName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoFieldNameSpecified, "No field name provided")));
+
+      if (value == null)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoFieldValueSpecified, "No field value provided")));
+      
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      Data.Field dataField = new Data.Field()
+      {
+        Key = fieldName,
+        Value = value
+      };
+
+      await dataService.UpsertRecordField(dataStoreName, key, dataField);
+
+      Uri absoluteSelfUri = routingService.GetAbsoluteRouteUrl(this, "GetRecordField", new { dataStoreName, key, fieldName });
+      return new CreatedResult(absoluteSelfUri, new Field()
+      {
+        Key = fieldName,
+        Value = value
+      });
     }
 
     /// <summary>
@@ -226,6 +370,23 @@ namespace Apteco.PullMarketing.Controllers
     [ProducesResponseType(typeof(void), 404)]
     public async Task<IActionResult> DeleteRecordField(string dataStoreName, string key, string fieldName)
     {
+      if (string.IsNullOrEmpty(dataStoreName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
+
+      if (string.IsNullOrEmpty(key))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoPrimaryKeySpecified, "No key value provided")));
+
+      if (string.IsNullOrEmpty(fieldName))
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoFieldNameSpecified, "No field name provided")));
+
+
+      if (!ModelState.IsValid)
+        return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
+
+      bool success = await dataService.DeleteRecordField(dataStoreName, key, fieldName);
+      if (!success)
+        return NotFound();
+
       return NoContent();
     }
 

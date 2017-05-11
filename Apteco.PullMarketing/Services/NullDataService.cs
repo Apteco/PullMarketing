@@ -12,27 +12,62 @@ namespace Apteco.PullMarketing.Services
     #region public methods
     public Task<IEnumerable<DataStore>> GetDataStores(FilterPageAndSortInfo filterPageAndSortInfo)
     {
-      throw new Exception("NullDataService doesn't support querying data store information");
+      throw new NotImplementedException();
     }
 
     public Task<DataStore> GetDataStore(string name)
     {
-      throw new Exception("NullDataService doesn't support querying data store information");
+      throw new NotImplementedException();
     }
 
     public Task<bool> CreateDataStore(DataStore dataStore)
     {
-      throw new Exception("NullDataService doesn't support creating data stores");
+      throw new NotImplementedException();
     }
 
     public Task<bool> DeleteDataStore(string name)
     {
-      throw new Exception("NullDataService doesn't support deleting data stores");
+      throw new NotImplementedException();
     }
 
     public Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails)
     {
-      throw new Exception("NullDataService doesn't support importing data");
+      throw new NotImplementedException();
+    }
+
+    public Task<List<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<Record> GetRecord(string dataStoreName, string primaryKeyValue)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> UpsertRecord(string dataStoreName, Record record)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteRecord(string dataStoreName, string primaryKeyValue)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<Field> GetRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> UpsertRecordField(string dataStoreName, string primaryKeyValue, Field field)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      throw new NotImplementedException();
     }
     #endregion
   }

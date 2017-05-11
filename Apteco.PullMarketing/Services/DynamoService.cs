@@ -57,6 +57,48 @@ namespace Apteco.PullMarketing.Services
       DynamoFacade facade = CreateDynamoFacade();
       return await facade.Upsert(stream, upsertDetails);
     }
+
+    public async Task<List<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.GetRecords(dataStoreName, filterPageAndSortInfo);
+    }
+
+    public async Task<Record> GetRecord(string dataStoreName, string primaryKeyValue)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.GetRecord(dataStoreName, primaryKeyValue);
+    }
+
+    public async Task<bool> UpsertRecord(string dataStoreName, Record record)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.UpsertRecord(dataStoreName, record);
+    }
+
+    public async Task<bool> DeleteRecord(string dataStoreName, string primaryKeyValue)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.DeleteRecord(dataStoreName, primaryKeyValue);
+    }
+
+    public async Task<Field> GetRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.GetRecordField(dataStoreName, primaryKeyValue, fieldName);
+    }
+
+    public async Task<bool> UpsertRecordField(string dataStoreName, string primaryKeyValue, Field field)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.UpsertRecordField(dataStoreName, primaryKeyValue, field);
+    }
+
+    public async Task<bool> DeleteRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      DynamoFacade facade = CreateDynamoFacade();
+      return await facade.DeleteRecordField(dataStoreName, primaryKeyValue, fieldName);
+    }
     #endregion
 
     #region private methods

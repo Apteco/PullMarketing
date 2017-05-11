@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using ApiPager.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Apteco.PullMarketing.Data.Mongo
@@ -25,12 +26,12 @@ namespace Apteco.PullMarketing.Data.Mongo
     #endregion
 
     #region public methods
-    public async Task<List<DataStore>> GetDataStores()
+    public Task<List<DataStore>> GetDataStores()
     {
       throw new NotImplementedException();
     }
 
-    public async Task<DataStore> GetDataStore(string name)
+    public Task<DataStore> GetDataStore(string name)
     {
       throw new NotImplementedException();
     }
@@ -99,6 +100,41 @@ namespace Apteco.PullMarketing.Data.Mongo
 
 			  return new UpsertResults() { NumberOfRecordsUpserted = records, NumberOfRecordsSkipped = 0 };
 			}
+    }
+
+    public Task<List<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<Record> GetRecord(string tableName, string primaryKeyValue)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> UpsertRecord(string tableName, Record record)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteRecord(string tableName, string primaryKeyValue)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<Field> GetRecordField(string tableName, string primaryKeyValue, string fieldName)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> UpsertRecordField(string tableName, string primaryKeyValue, Field field)
+    {
+      throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteRecordField(string tableName, string primaryKeyValue, string fieldName)
+    {
+      throw new NotImplementedException();
     }
     #endregion
 

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ApiPager.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Apteco.PullMarketing.Data.Dynamo
@@ -31,10 +32,8 @@ namespace Apteco.PullMarketing.Data.Dynamo
     #region public methods
     public async Task<bool> DeleteTable(string tableName, int timeoutInSeconds)
 		{
-			//Connect
 			using (var client = Connect())
 			{
-				//Delete the table
 			  try
 			  {
 			    logger.LogInformation("Deleting table " + tableName);
@@ -64,7 +63,6 @@ namespace Apteco.PullMarketing.Data.Dynamo
 
 		public async Task<bool> CreateTable(string tableName, string primaryKeyFieldName, int timeoutInSeconds)
 		{
-			//Connect
 			using (var client = Connect())
 			{
 				//Create the table
@@ -127,7 +125,6 @@ namespace Apteco.PullMarketing.Data.Dynamo
 
     public async Task<UpsertResults> Upsert(Stream stream, UpsertDetails upsertDetails)
 		{
-			//Connect
 			using (var client = Connect())
 			{
 				var tables = await client.ListTablesAsync();
@@ -176,10 +173,131 @@ namespace Apteco.PullMarketing.Data.Dynamo
 				return results;
 			}
 		}
+
+	  public async Task<List<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
+	  {
+	    using (var client = Connect())
+	    {
+	      Table table;
+	      if (!Table.TryLoadTable(client, tableName, out table) || (table == null))
+	        return null;
+
+        List<Record> records = new List<Record>();
+
+        ScanOperationConfig scanOperationConfig = new ScanOperationConfig();
+	      scanOperationConfig.Limit = filterPageAndSortInfo.Count;
+
+	      while (true)
+	      {
+	        Search results = table.Scan(scanOperationConfig);
+	        List<Document> documents = await results.GetNextSetAsync();
+	        foreach (Document document in documents.Take(filterPageAndSortInfo.Count - records.Count))
+	        {
+	          records.Add(CreateRecord(table.HashKeys[0], document.ToAttributeMap()));
+	        }
+
+	        if (records.Count >= filterPageAndSortInfo.Count || results.IsDone)
+	        {
+	          filterPageAndSortInfo.TotalCount = records.Count + results.Count;
+	          break;
+	        }
+	        else
+	        {
+	          scanOperationConfig.PaginationToken = results.PaginationToken;
+	        }
+        }
+
+        return records;
+	    }
+	  }
+
+    public async Task<Record> GetRecord(string tableName, string primaryKeyValue)
+	  {
+	    using (var client = Connect())
+	    {
+	      PrimaryKeyValue key = await CreatePrimaryKeyValue(client, tableName, primaryKeyValue);
+
+        var response = await client.GetItemAsync(tableName, key.CreateKeyValueMap());
+	      if (!response.IsItemSet)
+	        return null;
+
+	      Record record = CreateRecord(key.KeyName, response.Item);
+	      return record;
+	    }
+	  }
+
+	  public async Task<bool> UpsertRecord(string tableName, Record record)
+	  {
+	    using (var client = Connect())
+	    {
+	      PrimaryKeyValue key = await CreatePrimaryKeyValue(client, tableName, record.Key);
+        Dictionary<string, AttributeValueUpdate> attributes = new Dictionary<string, AttributeValueUpdate>();
+	      foreach (Field field in record.Fields)
+	      {
+	        attributes[field.Key] = new AttributeValueUpdate(new AttributeValue(field.Value), AttributeAction.PUT);
+	      }
+
+	      await client.UpdateItemAsync(tableName, key.CreateKeyValueMap(), attributes);
+	      return true;
+	    }
+    }
+
+    public async Task<bool> DeleteRecord(string tableName, string primaryKeyValue)
+	  {
+	    using (var client = Connect())
+	    {
+	      PrimaryKeyValue key = await CreatePrimaryKeyValue(client, tableName, primaryKeyValue);
+
+	      await client.DeleteItemAsync(tableName, key.CreateKeyValueMap());
+	      return true;
+	    }
+	  }
+
+	  public async Task<Field> GetRecordField(string tableName, string primaryKeyValue, string fieldName)
+	  {
+	    Record record = await GetRecord(tableName, primaryKeyValue);
+	    if (record?.Fields == null)
+	      return null;
+
+	    return record.Fields.FirstOrDefault(f => f.Key == fieldName);
+	  }
+
+	  public async Task<bool> UpsertRecordField(string tableName, string primaryKeyValue, Field field)
+	  {
+	    using (var client = Connect())
+	    {
+	      PrimaryKeyValue key = await CreatePrimaryKeyValue(client, tableName, primaryKeyValue);
+	      Dictionary<string, AttributeValueUpdate> attributes = new Dictionary<string, AttributeValueUpdate>();
+	      attributes[field.Key] = new AttributeValueUpdate(new AttributeValue(field.Value), AttributeAction.PUT);
+
+	      await client.UpdateItemAsync(tableName, key.CreateKeyValueMap(), attributes);
+	      return true;
+	    }
+    }
+
+	  public async Task<bool> DeleteRecordField(string tableName, string primaryKeyValue, string fieldName)
+	  {
+	    using (var client = Connect())
+	    {
+	      PrimaryKeyValue key = await CreatePrimaryKeyValue(client, tableName, primaryKeyValue);
+	      Dictionary<string, AttributeValueUpdate> attributes = new Dictionary<string, AttributeValueUpdate>();
+        attributes[fieldName] = new AttributeValueUpdate(null, AttributeAction.DELETE);
+
+	      await client.UpdateItemAsync(tableName, key.CreateKeyValueMap(), attributes);
+	      return true;
+	    }
+    }
     #endregion
 
     #region private methods
-	  private async Task<DataStore> GetDataStore(AmazonDynamoDBClient client, string tableName)
+    private async Task<PrimaryKeyValue> CreatePrimaryKeyValue(AmazonDynamoDBClient client, string tableName, string primaryKeyValue)
+	  {
+	    DataStore dataStore = await GetDataStore(client, tableName);
+
+	    return new PrimaryKeyValue(tableName, dataStore.PrimaryKeyFieldName, primaryKeyValue);
+	  }
+
+    private async Task<DataStore> GetDataStore(AmazonDynamoDBClient client, string tableName)
 	  {
 	    try
 	    {
@@ -420,7 +538,26 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			lines.CompleteAdding();
 		}
 
-		private AmazonDynamoDBClient Connect()
+	  private Record CreateRecord(string primaryKeyName, Dictionary<string, AttributeValue> attributesMap)
+	  {
+	    string key;
+	    AttributeValue keyValue;
+	    if (!attributesMap.TryGetValue(primaryKeyName, out keyValue))
+	      key = null;
+	    else
+	      key = keyValue.S;
+
+	    return new Record()
+	    {
+	      Key = key,
+	      Fields = attributesMap
+	        .Where(kvp => kvp.Key != primaryKeyName)
+	        .Select(kvp => new Field() { Key = kvp.Key, Value = kvp.Value.S })
+	        .ToList()
+	    };
+	  }
+
+    private AmazonDynamoDBClient Connect()
 		{
 			var ddbConfig = new AmazonDynamoDBConfig();
 			ddbConfig.ThrottleRetries = true;

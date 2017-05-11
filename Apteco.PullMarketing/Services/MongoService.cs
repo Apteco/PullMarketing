@@ -57,6 +57,48 @@ namespace Apteco.PullMarketing.Services
       MongoFacade facade = CreateMongoFacade();
       return await facade.Upsert(stream, upsertDetails);
     }
+
+    public async Task<List<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.GetRecords(dataStoreName, filterPageAndSortInfo);
+    }
+
+    public async Task<Record> GetRecord(string dataStoreName, string primaryKeyValue)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.GetRecord(dataStoreName, primaryKeyValue);
+    }
+
+    public async Task<bool> UpsertRecord(string dataStoreName, Record record)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.UpsertRecord(dataStoreName, record);
+    }
+
+    public async Task<bool> DeleteRecord(string dataStoreName, string primaryKeyValue)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.DeleteRecord(dataStoreName, primaryKeyValue);
+    }
+
+    public async Task<Field> GetRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.GetRecordField(dataStoreName, primaryKeyValue, fieldName);
+    }
+
+    public async Task<bool> UpsertRecordField(string dataStoreName, string primaryKeyValue, Field field)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.UpsertRecordField(dataStoreName, primaryKeyValue, field);
+    }
+
+    public async Task<bool> DeleteRecordField(string dataStoreName, string primaryKeyValue, string fieldName)
+    {
+      MongoFacade facade = CreateMongoFacade();
+      return await facade.DeleteRecordField(dataStoreName, primaryKeyValue, fieldName);
+    }
     #endregion
 
     #region private methods

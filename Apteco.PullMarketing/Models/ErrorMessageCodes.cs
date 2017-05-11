@@ -2,13 +2,19 @@
 {
   public enum ErrorMessageCodes
   {
-    //DataStores errors start with 1XXX
-    NoDataStoreNameProvided = 1001,
-    NoDataStoreDetailsProvided = 1002,
+    //General errors start with 1XXX
+    GeneralInvalidParameters = 1001,
 
-    //Records errors start with 2XXX
-    NoUpsertDetailsSpecified = 2001,
-    NoPrimaryKeySpecified = 2002,
-    MultiplePrimaryKeysSpecified = 2003,
+    //DataStores errors start with 2XXX
+    NoDataStoreNameProvided = 2001,
+    NoDataStoreDetailsProvided = 2002,
+
+    //Records errors start with 3XXX
+    NoUpsertDetailsSpecified = 3001,
+    NoPrimaryKeySpecified = 3002,
+    MultiplePrimaryKeysSpecified = 3003,
+    NoFieldNameSpecified = 3004,
+    NoFieldValueSpecified = 3005,
+    NoUpsertRecordDetailsSpecified = 3006,
   }
 }
