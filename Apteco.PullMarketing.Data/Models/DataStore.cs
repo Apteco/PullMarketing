@@ -1,4 +1,4 @@
-﻿namespace Apteco.PullMarketing.Data
+﻿namespace Apteco.PullMarketing.Data.Models
 {
   public class DataStore
   {

@@ -5,10 +5,14 @@ using System.Threading.Tasks;
 using ApiPager.AspNetCore;
 using ApiPager.Core;
 using ApiPager.Core.Models;
+using Apteco.PullMarketing.Data;
+using Apteco.PullMarketing.Data.Dynamo;
 using Apteco.PullMarketing.Models;
-using Apteco.PullMarketing.Models.DataStores;
 using Apteco.PullMarketing.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using DataStore = Apteco.PullMarketing.Models.DataStores.DataStore;
 
 namespace Apteco.PullMarketing.Controllers
 {
@@ -40,7 +44,7 @@ namespace Apteco.PullMarketing.Controllers
     public async Task<IActionResult> GetDataStores()
     {
       FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
-      IEnumerable<Data.DataStore> dataStores = await dataService.GetDataStores(filterPageAndSortInfo);
+      IEnumerable<Data.Models.DataStore> dataStores = await dataService.GetDataStores(filterPageAndSortInfo);
 
       PagedResults<DataStore> pagedResults = new PagedResults<DataStore>()
       {
@@ -93,7 +97,7 @@ namespace Apteco.PullMarketing.Controllers
       if (string.IsNullOrEmpty(name) || !ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
 
-      Data.DataStore dataStore = await dataService.GetDataStore(name);
+      Data.Models.DataStore dataStore = await dataService.GetDataStore(name);
       if (dataStore == null)
         return NotFound();
 

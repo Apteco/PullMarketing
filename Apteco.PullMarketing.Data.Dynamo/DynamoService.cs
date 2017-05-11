@@ -10,19 +10,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ApiPager.Core;
+using ApiPager.Data.Linq;
+using Apteco.PullMarketing.Data.Models;
 using Microsoft.Extensions.Logging;
+using Record = Apteco.PullMarketing.Data.Models.Record;
 
 namespace Apteco.PullMarketing.Data.Dynamo
 {
-	public class DynamoFacade : IDataFacade
+	public class DynamoService : IDataService
 	{
     #region private fields
-    private DynamoConnectionSettings connectionSettings;
-    private ILogger<DynamoFacade> logger;
+    private IDynamoConnectionSettings connectionSettings;
+    private ILogger<DynamoService> logger;
     #endregion
 
     #region public constructor
-    public DynamoFacade(DynamoConnectionSettings connectionSettings,  ILogger<DynamoFacade> logger)
+    public DynamoService(IDynamoConnectionSettings connectionSettings,  ILogger<DynamoService> logger)
 		{
 			this.connectionSettings = connectionSettings;
 			this.logger = logger;
@@ -30,7 +33,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
     #endregion
 
     #region public methods
-    public async Task<bool> DeleteTable(string tableName, int timeoutInSeconds)
+    public async Task<bool> DeleteDataStore(string tableName)
 		{
 			using (var client = Connect())
 			{
@@ -42,7 +45,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			      return false;
 
 			    logger.LogInformation("Waiting for table " + tableName);
-			    bool success = await WaitForTableToBeDeleted(client, tableName, timeoutInSeconds);
+			    bool success = await WaitForTableToBeDeleted(client, tableName, connectionSettings.ModifyDataStoreTimeoutInSeconds);
 			    if (success)
           {
             logger.LogInformation("Table '" + tableName + "' was deleted");
@@ -50,7 +53,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
           }
           else
 			    {
-			      logger.LogInformation("Table '" + tableName + "' was not deleted after " + timeoutInSeconds + " seconds");
+			      logger.LogInformation("Table '" + tableName + "' was not deleted after " + connectionSettings.ModifyDataStoreTimeoutInSeconds + " seconds");
 			      return false;
 			    }
 			  }
@@ -61,44 +64,44 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			}
 		}
 
-		public async Task<bool> CreateTable(string tableName, string primaryKeyFieldName, int timeoutInSeconds)
+		public async Task<bool> CreateDataStore(DataStore dataStore)
 		{
 			using (var client = Connect())
 			{
 				//Create the table
 				var createTableRequest = new CreateTableRequest();
-				createTableRequest.TableName = tableName;
+				createTableRequest.TableName = dataStore.Name;
 				createTableRequest.ProvisionedThroughput = new ProvisionedThroughput(5, 1000);
 
 				//Set the attribute field
 				createTableRequest.AttributeDefinitions = new List<AttributeDefinition>();
-				AttributeDefinition ad = new AttributeDefinition(primaryKeyFieldName, ScalarAttributeType.S);
+				AttributeDefinition ad = new AttributeDefinition(dataStore.PrimaryKeyFieldName, ScalarAttributeType.S);
 				createTableRequest.AttributeDefinitions.Add(ad);
 
 				//Set up a hash key that points to the attribute
 				createTableRequest.KeySchema = new List<KeySchemaElement>();
-				createTableRequest.KeySchema.Add(new KeySchemaElement(primaryKeyFieldName, KeyType.HASH));
+				createTableRequest.KeySchema.Add(new KeySchemaElement(dataStore.PrimaryKeyFieldName, KeyType.HASH));
 
-			  logger.LogInformation("Creating table '" + tableName + "'");
+			  logger.LogInformation("Creating table '" + dataStore.Name + "'");
 
 				await client.CreateTableAsync(createTableRequest);
 
-				bool success = await WaitForTableState(client, tableName, "ACTIVE", timeoutInSeconds);
+				bool success = await WaitForTableState(client, dataStore.Name, "ACTIVE", connectionSettings.ModifyDataStoreTimeoutInSeconds);
 
 			  if (success)
 			  {
-			    logger.LogInformation("Table '" + tableName + "' is now 'ACTIVE'");
+			    logger.LogInformation("Table '" + dataStore.Name + "' is now 'ACTIVE'");
 			    return true;
 			  }
 			  else
 			  {
-			    logger.LogInformation("Table '" + tableName + "' did not become 'ACTIVE' active "+ timeoutInSeconds+" seconds");
+			    logger.LogInformation("Table '" + dataStore.Name + "' did not become 'ACTIVE' active "+ connectionSettings.ModifyDataStoreTimeoutInSeconds + " seconds");
 			    return false;
 			  }
       }
 		}
 
-	  public async Task<List<DataStore>> GetDataStores()
+	  public async Task<IEnumerable<DataStore>> GetDataStores(FilterPageAndSortInfo filterPageAndSortInfo)
 	  {
 	    using (var client = Connect())
 	    {
@@ -111,7 +114,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
             dataStores.Add(dataStore);
         }
 
-	      return dataStores;
+	      return dataStores.Filter(filterPageAndSortInfo, new string[] { "Name", "PrimaryKeyFieldName" }, "Name");
 	    }
 	  }
 
@@ -174,7 +177,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			}
 		}
 
-	  public async Task<List<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
+	  public async Task<IEnumerable<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
 	  {
 	    using (var client = Connect())
 	    {

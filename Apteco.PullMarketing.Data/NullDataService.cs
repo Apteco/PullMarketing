@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ApiPager.Core;
-using Apteco.PullMarketing.Data;
+using Apteco.PullMarketing.Data.Models;
 
-namespace Apteco.PullMarketing.Services
+namespace Apteco.PullMarketing.Data
 {
   public class NullDataService : IDataService
   {
@@ -35,7 +35,7 @@ namespace Apteco.PullMarketing.Services
       throw new NotImplementedException();
     }
 
-    public Task<List<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo)
+    public Task<IEnumerable<Record>> GetRecords(string dataStoreName, FilterPageAndSortInfo filterPageAndSortInfo)
     {
       throw new NotImplementedException();
     }

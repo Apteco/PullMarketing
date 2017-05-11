@@ -19,16 +19,16 @@ namespace Apteco.PullMarketing.Models.DataStores
     [Required]
     public string PrimaryKeyFieldName { get; set; }
 
-    public static implicit operator Data.DataStore(DataStore dataStore)
+    public static implicit operator Data.Models.DataStore(DataStore dataStore)
     {
-      return new Data.DataStore()
+      return new Data.Models.DataStore()
       {
         Name = dataStore.Name,
         PrimaryKeyFieldName = dataStore.PrimaryKeyFieldName
       };
     }
 
-    public static implicit operator DataStore(Data.DataStore dataStore)
+    public static implicit operator DataStore(Data.Models.DataStore dataStore)
     {
       return new DataStore()
       {

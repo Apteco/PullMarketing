@@ -52,7 +52,7 @@ namespace Apteco.PullMarketing
           Description = "An API to allow creating and fast retreval of information about records processed by FastStats",
           TermsOfService = "None",
           Contact = new Contact { Name = "Apteco Ltd", Email = "support@apteco.com", Url = "http://www.apteco.com" },
-          License = new License { Name = "Apache 2.0", Url = "https://github.com/Apteco/PullMarketing/blob/master/LICENSE" }
+          License = new License { Name = "Apache 2.0 Licence", Url = "https://github.com/Apteco/PullMarketing/blob/master/LICENSE" }
         });
 
         var basePath = PlatformServices.Default.Application.ApplicationBasePath;
@@ -77,12 +77,14 @@ namespace Apteco.PullMarketing
       {
         services.Configure<DynamoConnectionSettings>(dynamoConnection);
 
+        services.AddSingleton<IDynamoConnectionSettings, DynamoOptionConnectionSettings>();
         services.AddSingleton<IDataService, DynamoService>();
       }
       else if (mongoConnection != null)
       {
         services.Configure<MongoConnectionSettings>(mongoConnection);
 
+        services.AddSingleton<IMongoConnectionSettings, MongoOptionConnectionSettings>();
         services.AddSingleton<IDataService, MongoService>();
       }
       else

@@ -7,11 +7,13 @@ using ApiPager.AspNetCore;
 using ApiPager.Core;
 using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
+using Apteco.PullMarketing.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Apteco.PullMarketing.Models;
 using Apteco.PullMarketing.Models.Records;
 using Apteco.PullMarketing.Services;
 using Apteco.PullMarketing.Swagger;
+using Microsoft.Extensions.Configuration;
 using Record = Apteco.PullMarketing.Models.Records.Record;
 using Field = Apteco.PullMarketing.Models.Records.Field;
 
@@ -49,7 +51,7 @@ namespace Apteco.PullMarketing.Controllers
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
 
       FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
-      List<Data.Record> dataRecords = await dataService.GetRecords(dataStoreName, filterPageAndSortInfo);
+      IEnumerable<Data.Models.Record> dataRecords = await dataService.GetRecords(dataStoreName, filterPageAndSortInfo);
 
       PagedResults<Record> pagedResults = new PagedResults<Record>()
       {
@@ -176,7 +178,7 @@ namespace Apteco.PullMarketing.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      Data.Record dataRecord = await dataService.GetRecord(dataStoreName, key);
+      Data.Models.Record dataRecord = await dataService.GetRecord(dataStoreName, key);
       if (dataRecord == null)
         return NotFound();
 
@@ -217,10 +219,10 @@ namespace Apteco.PullMarketing.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      Data.Record dataRecord = new Data.Record()
+      Data.Models.Record dataRecord = new Data.Models.Record()
       {
         Key = key,
-        Fields = record.Fields.Select(f => new Data.Field() {Key = f.Key, Value = f.Value}).ToList()
+        Fields = record.Fields.Select(f => new Data.Models.Field() {Key = f.Key, Value = f.Value}).ToList()
       };
 
       await dataService.UpsertRecord(dataStoreName, dataRecord);
@@ -293,7 +295,7 @@ namespace Apteco.PullMarketing.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      Data.Field dataField = await dataService.GetRecordField(dataStoreName, key, fieldName);
+      Data.Models.Field dataField = await dataService.GetRecordField(dataStoreName, key, fieldName);
       if (dataField == null)
         return NotFound();
 
@@ -338,7 +340,7 @@ namespace Apteco.PullMarketing.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      Data.Field dataField = new Data.Field()
+      Data.Models.Field dataField = new Data.Models.Field()
       {
         Key = fieldName,
         Value = value

@@ -6,19 +6,20 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using ApiPager.Core;
+using Apteco.PullMarketing.Data.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Apteco.PullMarketing.Data.Mongo
 {
-	public class MongoFacade : IDataFacade
+	public class MongoService : IDataService
   {
     #region private fields
-    private MongoConnectionSettings connectionSettings;
-		private ILogger<MongoFacade> logger;
+    private IMongoConnectionSettings connectionSettings;
+		private ILogger<MongoService> logger;
     #endregion
 
     #region public constructor
-    public MongoFacade(MongoConnectionSettings connectionSettings, ILogger<MongoFacade> logger)
+    public MongoService(IMongoConnectionSettings connectionSettings, ILogger<MongoService> logger)
 		{
 			this.connectionSettings = connectionSettings;
 			this.logger = logger;
@@ -26,7 +27,7 @@ namespace Apteco.PullMarketing.Data.Mongo
     #endregion
 
     #region public methods
-    public Task<List<DataStore>> GetDataStores()
+    public Task<IEnumerable<DataStore>> GetDataStores(FilterPageAndSortInfo filterPageAndSortInfo)
     {
       throw new NotImplementedException();
     }
@@ -36,12 +37,12 @@ namespace Apteco.PullMarketing.Data.Mongo
       throw new NotImplementedException();
     }
 
-    public Task<bool> CreateTable(string tableName, string primaryKeyFieldName, int timeoutInSeconds)
+    public Task<bool> CreateDataStore(DataStore dataStore)
     {
       throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteTable(string tableName, int timeoutInSeconds)
+    public Task<bool> DeleteDataStore(string tableName)
     {
       throw new NotImplementedException();
     }
@@ -102,7 +103,7 @@ namespace Apteco.PullMarketing.Data.Mongo
 			}
     }
 
-    public Task<List<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
+    public Task<IEnumerable<Record>> GetRecords(string tableName, FilterPageAndSortInfo filterPageAndSortInfo)
     {
       throw new NotImplementedException();
     }

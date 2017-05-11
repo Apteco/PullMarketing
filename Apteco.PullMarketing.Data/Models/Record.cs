@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Apteco.PullMarketing.Data
+namespace Apteco.PullMarketing.Data.Models
 {
   public class Record
   {
