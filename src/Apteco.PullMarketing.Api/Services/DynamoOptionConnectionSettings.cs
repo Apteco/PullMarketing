@@ -15,6 +15,11 @@ namespace Apteco.PullMarketing.Services
       get { return innerConnectionSettings.CurrentValue.ServiceUrl; }
     }
 
+    public string RegionEndpoint
+    {
+      get { return innerConnectionSettings.CurrentValue.RegionEndpoint; }
+    }
+
     public string AccessKey
     {
       get { return innerConnectionSettings.CurrentValue.AccessKey; }

@@ -4,6 +4,7 @@
   {
     #region public properties
     public string ServiceUrl { get; set; }
+    public string RegionEndpoint { get; set; }
     public string AccessKey { get; set; }
     public string SecretAccessKey { get; set; }
     public int ModifyDataStoreTimeoutInSeconds { get; set; }

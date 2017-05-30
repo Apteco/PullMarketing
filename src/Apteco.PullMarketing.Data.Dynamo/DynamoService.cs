@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Amazon;
 using ApiPager.Core;
 using ApiPager.Data.Linq;
 using Apteco.PullMarketing.Data.Models;
@@ -568,7 +569,16 @@ namespace Apteco.PullMarketing.Data.Dynamo
       if (!string.IsNullOrEmpty(connectionSettings.ServiceUrl))
 				ddbConfig.ServiceURL = connectionSettings.ServiceUrl;
 
-		  AWSCredentials credentials = null;
+		  if (!string.IsNullOrEmpty(connectionSettings.RegionEndpoint))
+		  {
+		    RegionEndpoint regionEndpoint = RegionEndpoint.GetBySystemName(connectionSettings.RegionEndpoint);
+        if (regionEndpoint == null)
+          throw new Exception($"Can't parse the specified RegionEndpoint ({connectionSettings.RegionEndpoint}) as a valid value");
+
+        ddbConfig.RegionEndpoint = regionEndpoint;
+      }
+
+      AWSCredentials credentials = null;
 			if (!string.IsNullOrEmpty(connectionSettings.AccessKey))
 				credentials = new BasicAWSCredentials(connectionSettings.AccessKey, connectionSettings.SecretAccessKey);
 			
