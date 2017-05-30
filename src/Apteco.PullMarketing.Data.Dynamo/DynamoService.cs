@@ -477,7 +477,11 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			if (fileMetadata.Delimiter > 0)
 				delimiter = (char)fileMetadata.Delimiter;
 
-			Encoding encoding = Encoding.UTF8;
+		  char encloser = (char)0;
+      if (fileMetadata.Encloser > 0)
+        encloser = (char)fileMetadata.Encloser;
+      
+      Encoding encoding = Encoding.UTF8;
 			if (fileMetadata.Encoding.ToUpper() == "DEFAULT")
 				encoding = Encoding.GetEncoding(0);
 			else if (fileMetadata.Encoding.ToUpper() == "ASCII")
@@ -491,10 +495,15 @@ namespace Apteco.PullMarketing.Data.Dynamo
 			using (var sr = new StreamReader(stream, encoding))
 			{
 				//Skip header if we have one, and update column offsets
-				if (fileMetadata.Header)
-				  UpdateColumnOffsets(fileMetadata, sr.ReadLine()?.Split(delimiter));
+			  if (fileMetadata.Header)
+			  {
+			    string[] headers = sr.ReadLine()?.Split(delimiter);
+			    StringUtilities.RemoveEnclosers(headers, encloser);
 
-				int maxColumnIndex = 0;
+          UpdateColumnOffsets(fileMetadata, headers);
+			  }
+
+			  int maxColumnIndex = 0;
 				foreach (FieldMetadata field in fileMetadata.Fields)
 				  maxColumnIndex = Math.Max(field.Offset, maxColumnIndex);
 
@@ -524,6 +533,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
 						break;
 
 					var items = line.Split(delimiter);
+  		    StringUtilities.RemoveEnclosers(items, encloser);
 
 					if (items.Length > maxColumnIndex)
 					{

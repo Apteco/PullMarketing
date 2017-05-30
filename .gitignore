@@ -5,5 +5,6 @@
 /.vs
 /src/*/obj
 /src/*/bin
+/src/Apteco.PullMarketing.Console/Properties/launchSettings.json
 /test/*/obj
 /test/*/bin

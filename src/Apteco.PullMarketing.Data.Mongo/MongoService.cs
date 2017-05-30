@@ -59,18 +59,27 @@ namespace Apteco.PullMarketing.Data.Mongo
 			  if (upsertDetails.FileMetadata.Delimiter > 0)
 			    delimiter = (char)upsertDetails.FileMetadata.Delimiter;
 
-			  //Skip header if we have one, and update column offsets
-			  if (upsertDetails.FileMetadata.Header)
-			    UpdateColumnOffsets(upsertDetails.FileMetadata, (await sr.ReadLineAsync())?.Split(delimiter));
+			  char encloser = (char)0;
+			  if (upsertDetails.FileMetadata.Encloser > 0)
+			    encloser = (char)upsertDetails.FileMetadata.Encloser;
 
-				long records = 0;
+        //Skip header if we have one, and update column offsets
+			  if (upsertDetails.FileMetadata.Header)
+			  {
+			    string[] headers = (await sr.ReadLineAsync())?.Split(delimiter);
+			    StringUtilities.RemoveEnclosers(headers, encloser);
+
+          UpdateColumnOffsets(upsertDetails.FileMetadata, headers);
+        }
+
+        long records = 0;
 
 				var collection = database.GetCollection<BsonDocument>(upsertDetails.TableName);
 
 				//Read rows into Documents, send updates to Dynamo
 				while (true)
 				{
-					var documents = await ReadDocuments(sr, upsertDetails.FileMetadata.Fields, upsertDetails.PrimaryKeyFieldName, delimiter, 1000);
+					var documents = await ReadDocuments(sr, upsertDetails.FileMetadata.Fields, upsertDetails.PrimaryKeyFieldName, delimiter, encloser, 1000);
 
 					var options = new BulkWriteOptions();
 					options.IsOrdered = false;
@@ -149,7 +158,7 @@ namespace Apteco.PullMarketing.Data.Mongo
         field.Offset = Array.IndexOf(header, field.HeaderName ?? field.ColumnName);
     }
 
-    private async Task<List<BsonDocument>> ReadDocuments(StreamReader sr, List<FieldMetadata> fields, string primaryKeyFieldName, char delimiter, int records)
+    private async Task<List<BsonDocument>> ReadDocuments(StreamReader sr, List<FieldMetadata> fields, string primaryKeyFieldName, char delimiter, char encloser, int records)
 		{
 			var documents = new List<BsonDocument>();
 
@@ -164,8 +173,9 @@ namespace Apteco.PullMarketing.Data.Mongo
 					break;
 
 				string[] items = line.Split(delimiter);
+			  StringUtilities.RemoveEnclosers(items, encloser);
 
-				if (items.Length == fields.Count)
+        if (items.Length == fields.Count)
 				{
 					var document = new BsonDocument();
 

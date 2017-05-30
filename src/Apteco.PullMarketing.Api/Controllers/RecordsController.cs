@@ -400,6 +400,7 @@ namespace Apteco.PullMarketing.Controllers
       upsertDetails.TableName = dataStoreName;
       upsertDetails.FileMetadata = new FileMetadata();
       upsertDetails.FileMetadata.Delimiter = string.IsNullOrEmpty(bulkUpsertRecordsDetails.Delimiter)? 0 : bulkUpsertRecordsDetails.Delimiter[0];
+      upsertDetails.FileMetadata.Encloser = string.IsNullOrEmpty(bulkUpsertRecordsDetails.Encloser) ? 0 : bulkUpsertRecordsDetails.Encloser[0];
       upsertDetails.FileMetadata.Encoding = bulkUpsertRecordsDetails.Encoding.ToString();
       upsertDetails.FileMetadata.Header = true;
       upsertDetails.FileMetadata.MatchOnHeader = true;

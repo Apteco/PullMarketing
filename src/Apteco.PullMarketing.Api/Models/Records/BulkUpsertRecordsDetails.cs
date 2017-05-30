@@ -25,5 +25,12 @@ namespace Apteco.PullMarketing.Models.Records
     /// </summary>
     [Required]
     public string Delimiter { get; set; }
+
+    /// <summary>
+    /// The character used to enclose fields within the input data file
+    /// If there is no encloser then leave blank
+    /// </summary>
+    [Required]
+    public string Encloser { get; set; }
   }
 }

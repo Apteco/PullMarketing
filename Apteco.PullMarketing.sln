@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Mongo", "src\Apteco.PullMarketing.Data.Mongo\Apteco.PullMarketing.Data.Mongo.csproj", "{244070A3-9D53-4386-805C-C69FF92C3045}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Console", "src\Apteco.PullMarketing.Console\Apteco.PullMarketing.Console.csproj", "{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{244070A3-9D53-4386-805C-C69FF92C3045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{244070A3-9D53-4386-805C-C69FF92C3045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{244070A3-9D53-4386-805C-C69FF92C3045}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,6 +58,6 @@ Global
 		{CB619DBF-98F0-4989-A2ED-99FFE7A86620} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
 		{184C263E-B992-4B6F-B038-F4B690C091BD} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
 		{244070A3-9D53-4386-805C-C69FF92C3045} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
 	EndGlobalSection
-
 EndGlobal
