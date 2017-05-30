@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp1.1\Apteco.PullMarketing.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp1.1\Apteco.PullMarketing.Api.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

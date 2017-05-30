@@ -1,15 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing", "Apteco.PullMarketing\Apteco.PullMarketing.csproj", "{92215F26-B65C-47B0-9F52-3FDBC2966148}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB10D9AE-C7D9-4386-A6D2-AB33B051A288}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Dynamo", "Apteco.PullMarketing.Data.Dynamo\Apteco.PullMarketing.Data.Dynamo.csproj", "{CB619DBF-98F0-4989-A2ED-99FFE7A86620}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D0BDD094-B620-4E09-8042-B66871696629}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data", "Apteco.PullMarketing.Data\Apteco.PullMarketing.Data.csproj", "{184C263E-B992-4B6F-B038-F4B690C091BD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7786C881-E4A8-42F2-9801-DF06F60220BF}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Mongo", "Apteco.PullMarketing.Data.Mongo\Apteco.PullMarketing.Data.Mongo.csproj", "{244070A3-9D53-4386-805C-C69FF92C3045}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Api", "src\Apteco.PullMarketing.Api\Apteco.PullMarketing.Api.csproj", "{92215F26-B65C-47B0-9F52-3FDBC2966148}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Dynamo", "src\Apteco.PullMarketing.Data.Dynamo\Apteco.PullMarketing.Data.Dynamo.csproj", "{CB619DBF-98F0-4989-A2ED-99FFE7A86620}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data", "src\Apteco.PullMarketing.Data\Apteco.PullMarketing.Data.csproj", "{184C263E-B992-4B6F-B038-F4B690C091BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Mongo", "src\Apteco.PullMarketing.Data.Mongo\Apteco.PullMarketing.Data.Mongo.csproj", "{244070A3-9D53-4386-805C-C69FF92C3045}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,4 +47,11 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{92215F26-B65C-47B0-9F52-3FDBC2966148} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+		{CB619DBF-98F0-4989-A2ED-99FFE7A86620} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+		{184C263E-B992-4B6F-B038-F4B690C091BD} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+		{244070A3-9D53-4386-805C-C69FF92C3045} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+	EndGlobalSection
+
 EndGlobal

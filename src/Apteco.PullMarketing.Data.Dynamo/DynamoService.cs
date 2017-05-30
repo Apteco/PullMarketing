@@ -564,11 +564,11 @@ namespace Apteco.PullMarketing.Data.Dynamo
 		{
 			var ddbConfig = new AmazonDynamoDBConfig();
 			ddbConfig.ThrottleRetries = true;
-
-			if (!string.IsNullOrEmpty(connectionSettings.ServiceUrl))
+      
+      if (!string.IsNullOrEmpty(connectionSettings.ServiceUrl))
 				ddbConfig.ServiceURL = connectionSettings.ServiceUrl;
 
-			AWSCredentials credentials = null;
+		  AWSCredentials credentials = null;
 			if (!string.IsNullOrEmpty(connectionSettings.AccessKey))
 				credentials = new BasicAWSCredentials(connectionSettings.AccessKey, connectionSettings.SecretAccessKey);
 			
