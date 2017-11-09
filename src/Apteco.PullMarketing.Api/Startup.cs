@@ -58,7 +58,7 @@ namespace Apteco.PullMarketing
         var basePath = PlatformServices.Default.Application.ApplicationBasePath;
 
         //Set the comments path for the swagger json and ui.
-        c.IncludeXmlComments(basePath + "\\Apteco.PullMarketing.xml");
+        c.IncludeXmlComments(basePath + "\\Apteco.PullMarketing.Api.xml");
         c.DescribeAllEnumsAsStrings();
         c.DescribeStringEnumsInCamelCase();
         c.OperationFilter<FixFormInParameterFilter>();

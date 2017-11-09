@@ -8,3 +8,5 @@
 /src/Apteco.PullMarketing.Console/Properties/launchSettings.json
 /test/*/obj
 /test/*/bin
+/src/Apteco.PullMarketing.Api/Apteco.PullMarketing.Api.csproj.user
+/src/Apteco.PullMarketing.Api/Properties/PublishProfiles/FolderProfile.pubxml.user
