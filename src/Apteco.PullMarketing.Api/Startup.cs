@@ -17,23 +17,20 @@ namespace Apteco.PullMarketing
 {
   public class Startup
   {
-    public Startup(IHostingEnvironment env)
-    {
-      var builder = new ConfigurationBuilder()
-        .SetBasePath(env.ContentRootPath)
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-        .AddEnvironmentVariables();
-
-      if (env.IsDevelopment())
-      {
-        builder.AddUserSecrets<Startup>();
-      }
-
-      Configuration = builder.Build();
-    }
+    private readonly ILoggerFactory loggerFactory;
 
     public IConfigurationRoot Configuration { get; }
+
+    public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
+      : this(env, loggerFactory, BuildConfiguration(env))
+    {
+    }
+
+    public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory, IConfigurationRoot configuration)
+    {
+      this.loggerFactory = loggerFactory;
+      Configuration = configuration;
+    }
 
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
@@ -71,6 +68,27 @@ namespace Apteco.PullMarketing
       services.AddOptions();
       services.AddLogging();
 
+      CreateServices(services);
+      services.AddSingleton(this);
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+    {
+      loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+      loggerFactory.AddDebug();
+
+      app.UseMvc();
+
+      app.UseSwagger();
+      app.UseSwaggerUI(c =>
+        {
+          c.SwaggerEndpoint("v1/swagger.json", "Pull Marketing API v1");
+        });
+    }
+
+    protected virtual void CreateServices(IServiceCollection services)
+    {
       var dynamoConnection = Configuration.GetSection("DynamoConnection");
       var mongoConnection = Configuration.GetSection("MongoConnection");
       if (dynamoConnection != null)
@@ -91,22 +109,23 @@ namespace Apteco.PullMarketing
       {
         services.AddSingleton<IDataService, NullDataService>();
       }
+
       services.AddSingleton<IRoutingService, RoutingService>();
     }
-
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+    
+    private static IConfigurationRoot BuildConfiguration(IHostingEnvironment env)
     {
-      loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-      loggerFactory.AddDebug();
+      var builder = new ConfigurationBuilder()
+        .SetBasePath(env.ContentRootPath)
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+        .AddEnvironmentVariables();
 
-      app.UseMvc();
-
-      app.UseSwagger();
-      app.UseSwaggerUI(c =>
-        {
-          c.SwaggerEndpoint("v1/swagger.json", "Pull Marketing API v1");
-        });
+      if (env.IsDevelopment())
+      {
+        builder.AddUserSecrets<Startup>();
+      }
+      return builder.Build();
     }
   }
 }

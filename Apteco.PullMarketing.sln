@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.4
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB10D9AE-C7D9-4386-A6D2-AB33B051A288}"
 EndProject
@@ -13,15 +13,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Api", "src\Apteco.PullMarketing.Api\Apteco.PullMarketing.Api.csproj", "{92215F26-B65C-47B0-9F52-3FDBC2966148}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apteco.PullMarketing.Api", "src\Apteco.PullMarketing.Api\Apteco.PullMarketing.Api.csproj", "{92215F26-B65C-47B0-9F52-3FDBC2966148}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Dynamo", "src\Apteco.PullMarketing.Data.Dynamo\Apteco.PullMarketing.Data.Dynamo.csproj", "{CB619DBF-98F0-4989-A2ED-99FFE7A86620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apteco.PullMarketing.Data.Dynamo", "src\Apteco.PullMarketing.Data.Dynamo\Apteco.PullMarketing.Data.Dynamo.csproj", "{CB619DBF-98F0-4989-A2ED-99FFE7A86620}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data", "src\Apteco.PullMarketing.Data\Apteco.PullMarketing.Data.csproj", "{184C263E-B992-4B6F-B038-F4B690C091BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apteco.PullMarketing.Data", "src\Apteco.PullMarketing.Data\Apteco.PullMarketing.Data.csproj", "{184C263E-B992-4B6F-B038-F4B690C091BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Data.Mongo", "src\Apteco.PullMarketing.Data.Mongo\Apteco.PullMarketing.Data.Mongo.csproj", "{244070A3-9D53-4386-805C-C69FF92C3045}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apteco.PullMarketing.Data.Mongo", "src\Apteco.PullMarketing.Data.Mongo\Apteco.PullMarketing.Data.Mongo.csproj", "{244070A3-9D53-4386-805C-C69FF92C3045}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Console", "src\Apteco.PullMarketing.Console\Apteco.PullMarketing.Console.csproj", "{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apteco.PullMarketing.Console", "src\Apteco.PullMarketing.Console\Apteco.PullMarketing.Console.csproj", "{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apteco.PullMarketing.Api.Test", "test\Apteco.PullMarketing.Api.Test\Apteco.PullMarketing.Api.Test.csproj", "{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,5 +65,9 @@ Global
 		{184C263E-B992-4B6F-B038-F4B690C091BD} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
 		{244070A3-9D53-4386-805C-C69FF92C3045} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
 		{1686F73A-1A20-4E5F-B1B0-AAC1FB98EA36} = {AB10D9AE-C7D9-4386-A6D2-AB33B051A288}
+		{8E4E7D12-D287-4C96-A87E-1AAE44E7A0D7} = {D0BDD094-B620-4E09-8042-B66871696629}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {61CE5791-A25D-49D3-BDCB-2B6B85535196}
 	EndGlobalSection
 EndGlobal
