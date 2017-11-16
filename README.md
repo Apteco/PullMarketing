@@ -9,6 +9,8 @@ The module consists of:
 The application is built upon [.Net Core](https://www.microsoft.com/net/core) and [.Net Standard](https://github.com/dotnet/standard)
 and the API uses [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) to provide the Swagger specification.
 
+Currently the Pull Marketing Module is not a fully supported release, but you are free to evaluate it.
+
 ## Getting Started with the API
 
 At the moment there is no binary installation, so you have to build up the files from source.
