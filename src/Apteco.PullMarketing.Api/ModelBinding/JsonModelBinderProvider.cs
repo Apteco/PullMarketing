@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace Apteco.PullMarketing.ModelBinding
+namespace Apteco.PullMarketing.Api.ModelBinding
 {
   public class JsonModelBinderProvider : IModelBinderProvider
   {

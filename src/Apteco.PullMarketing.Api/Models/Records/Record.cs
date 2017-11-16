@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Apteco.PullMarketing.Models.Records
+namespace Apteco.PullMarketing.Api.Models.Records
 {
   /// <summary>
   /// Details for a record

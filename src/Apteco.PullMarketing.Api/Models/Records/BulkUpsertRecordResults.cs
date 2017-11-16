@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Apteco.PullMarketing.Models.Records
+namespace Apteco.PullMarketing.Api.Models.Records
 {
   /// <summary>
   /// Details for the results of a record bulk upsert

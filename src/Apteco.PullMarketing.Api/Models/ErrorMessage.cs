@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Apteco.PullMarketing.Models
+namespace Apteco.PullMarketing.Api.Models
 {
   /// <summary>
   /// Details of an error that has occurred in the API

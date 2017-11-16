@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Apteco.PullMarketing.Services
+namespace Apteco.PullMarketing.Api.Services
 {
   public class RoutingService : IRoutingService
   {

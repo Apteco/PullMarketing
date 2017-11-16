@@ -1,7 +1,7 @@
 ﻿using Apteco.PullMarketing.Data.Mongo;
 using Microsoft.Extensions.Options;
 
-namespace Apteco.PullMarketing.Services
+namespace Apteco.PullMarketing.Api.Services
 {
   public class MongoOptionConnectionSettings : IMongoConnectionSettings
   {

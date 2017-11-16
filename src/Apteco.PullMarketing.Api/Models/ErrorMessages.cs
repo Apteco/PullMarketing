@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace Apteco.PullMarketing.Models
+namespace Apteco.PullMarketing.Api.Models
 {
   /// <summary>
   /// Details of any errors that have occurred in the API

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Apteco.PullMarketing.Models.Records
+namespace Apteco.PullMarketing.Api.Models.Records
 {
   /// <summary>
   /// The types of supported input data encoding

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Apteco.PullMarketing.ModelBinding;
+using Apteco.PullMarketing.Api.ModelBinding;
 
-namespace Apteco.PullMarketing.Models.Records
+namespace Apteco.PullMarketing.Api.Models.Records
 {
   /// <summary>
   /// Details for bulk upserting a set of records

@@ -1,5 +1,5 @@
 ﻿using Apteco.PullMarketing.Data;
-using Apteco.PullMarketing.Services;
+using Apteco.PullMarketing.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

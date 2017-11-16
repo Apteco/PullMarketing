@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Apteco.PullMarketing.Models
+namespace Apteco.PullMarketing.Api.Models
 {
   /// <summary>
   /// A key/value pair for details of a particular error message

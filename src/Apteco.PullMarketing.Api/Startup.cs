@@ -8,12 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
-using Apteco.PullMarketing.ModelBinding;
-using Apteco.PullMarketing.Services;
-using Apteco.PullMarketing.Swagger;
+using Apteco.PullMarketing.Api.ModelBinding;
+using Apteco.PullMarketing.Api.Services;
+using Apteco.PullMarketing.Api.Swagger;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace Apteco.PullMarketing
+namespace Apteco.PullMarketing.Api
 {
   public class Startup
   {

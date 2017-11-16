@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Apteco.PullMarketing.Services
+namespace Apteco.PullMarketing.Api.Services
 {
   public interface IRoutingService
   {

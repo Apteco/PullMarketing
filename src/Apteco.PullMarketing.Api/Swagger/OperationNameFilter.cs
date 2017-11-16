@@ -1,7 +1,7 @@
 ﻿using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Apteco.PullMarketing.Swagger
+namespace Apteco.PullMarketing.Api.Swagger
 {
   internal class OperationNameFilter : IOperationFilter
   {

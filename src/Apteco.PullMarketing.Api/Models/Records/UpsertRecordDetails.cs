@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Apteco.PullMarketing.Models.Records
+namespace Apteco.PullMarketing.Api.Models.Records
 {
   /// <summary>
   /// Details for a record to upsert

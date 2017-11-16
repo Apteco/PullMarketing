@@ -7,14 +7,14 @@ using ApiPager.Core;
 using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
 using Apteco.PullMarketing.Data.Dynamo;
-using Apteco.PullMarketing.Models;
-using Apteco.PullMarketing.Services;
+using Apteco.PullMarketing.Api.Models;
+using Apteco.PullMarketing.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using DataStore = Apteco.PullMarketing.Models.DataStores.DataStore;
+using DataStore = Apteco.PullMarketing.Api.Models.DataStores.DataStore;
 
-namespace Apteco.PullMarketing.Controllers
+namespace Apteco.PullMarketing.Api.Controllers
 {
   /// <summary>
   /// An endpoint within the API to manipulate data stores

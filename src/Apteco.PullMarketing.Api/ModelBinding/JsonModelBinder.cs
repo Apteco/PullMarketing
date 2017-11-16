@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 
-namespace Apteco.PullMarketing.ModelBinding
+namespace Apteco.PullMarketing.Api.ModelBinding
 {
   public class JsonModelBinder : IModelBinder
   {

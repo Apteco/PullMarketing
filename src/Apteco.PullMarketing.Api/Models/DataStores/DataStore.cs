@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Apteco.PullMarketing.Models.DataStores
+namespace Apteco.PullMarketing.Api.Models.DataStores
 {
   /// <summary>
   /// Details for a data store

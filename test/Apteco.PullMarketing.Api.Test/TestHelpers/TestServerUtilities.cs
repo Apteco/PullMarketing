@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Apteco.PullMarketing.Data;
-using Apteco.PullMarketing.Services;
+using Apteco.PullMarketing.Api.Services;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 

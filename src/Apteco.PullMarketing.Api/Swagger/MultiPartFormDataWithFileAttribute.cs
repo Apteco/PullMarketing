@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Apteco.PullMarketing.Swagger
+namespace Apteco.PullMarketing.Api.Swagger
 {
   [AttributeUsage(AttributeTargets.Method)]
   public sealed class MultiPartFormDataWithFileAttribute : Attribute

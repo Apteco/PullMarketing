@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Apteco.PullMarketing.Swagger
+namespace Apteco.PullMarketing.Api.Swagger
 {
   //See glyons' post in https://github.com/domaindrivendev/Swashbuckle/issues/120
   public class MultiPartFormDataWithFileFilter : IOperationFilter

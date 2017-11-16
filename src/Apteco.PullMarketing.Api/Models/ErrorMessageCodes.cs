@@ -1,4 +1,4 @@
-﻿namespace Apteco.PullMarketing.Models
+﻿namespace Apteco.PullMarketing.Api.Models
 {
   public enum ErrorMessageCodes
   {

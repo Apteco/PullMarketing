@@ -9,15 +9,15 @@ using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
 using Apteco.PullMarketing.Data.Models;
 using Microsoft.AspNetCore.Mvc;
-using Apteco.PullMarketing.Models;
-using Apteco.PullMarketing.Models.Records;
-using Apteco.PullMarketing.Services;
-using Apteco.PullMarketing.Swagger;
+using Apteco.PullMarketing.Api.Models;
+using Apteco.PullMarketing.Api.Models.Records;
+using Apteco.PullMarketing.Api.Services;
+using Apteco.PullMarketing.Api.Swagger;
 using Microsoft.Extensions.Configuration;
-using Record = Apteco.PullMarketing.Models.Records.Record;
-using Field = Apteco.PullMarketing.Models.Records.Field;
+using Record = Apteco.PullMarketing.Api.Models.Records.Record;
+using Field = Apteco.PullMarketing.Api.Models.Records.Field;
 
-namespace Apteco.PullMarketing.Controllers
+namespace Apteco.PullMarketing.Api.Controllers
 {
   /// <summary>
   /// An endpoint within the API to manipulate records and fields
