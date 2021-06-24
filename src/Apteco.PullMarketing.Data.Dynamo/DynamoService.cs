@@ -387,7 +387,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
 
 			var lines = new BlockingCollection<string[]>(queueSize);
 
-			var fileReaderTask = Task.Factory.StartNew(() =>
+			var fileReaderTask = Task.Run(() =>
 			{
 				ReadInput(stream, fileMetadata, lines);
 			});
@@ -398,7 +398,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
       for (int i = 0; i < updateTasks.Length; i++)
       {
         int taskNumber = i;
-				updateTasks[taskNumber] = Task.Factory.StartNew(() =>
+				updateTasks[taskNumber] = Task.Run(() =>
 				{
 				  taskResults[taskNumber] = UpdateItems(fileMetadata, table, lines);
   			});

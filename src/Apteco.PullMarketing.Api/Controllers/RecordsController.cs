@@ -12,8 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Apteco.PullMarketing.Api.Models;
 using Apteco.PullMarketing.Api.Models.Records;
 using Apteco.PullMarketing.Api.Services;
-using Apteco.PullMarketing.Api.Swagger;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using Record = Apteco.PullMarketing.Api.Models.Records.Record;
 using Field = Apteco.PullMarketing.Api.Models.Records.Field;
 
@@ -41,10 +40,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <param name="dataStoreName">The name of the data store to get the records from</param>
     /// <response code="200">The list of all data stores</response>
     /// <response code="400">A bad request</response>
-    [HttpGet("{dataStoreName}", Name = "GetRecords")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(PagedResults<Record>), 200)]
     [ProducesResponseType(typeof(void), 400)]
     [CanFilterPageAndSort(new string[] { "Key" })]
+    [HttpGet("{dataStoreName}", Name = "GetRecords")]
     public async Task<IActionResult> GetRecords(string dataStoreName)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -52,6 +53,8 @@ namespace Apteco.PullMarketing.Api.Controllers
 
       FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
       IEnumerable<Data.Models.Record> dataRecords = await dataService.GetRecords(dataStoreName, filterPageAndSortInfo);
+      if (dataRecords == null)
+        return BadRequest(new ErrorMessage(ErrorMessageCodes.InvalidFilterValuesSpecified, "No data returned from the data store"));
 
       PagedResults<Record> pagedResults = new PagedResults<Record>()
       {
@@ -68,18 +71,19 @@ namespace Apteco.PullMarketing.Api.Controllers
     }
 
     /// <summary>
-    /// Bulk upserts a set of record definied in a file provided as part of the POST data
+    /// Bulk upserts a set of record defined in a file provided as part of the POST data
     /// </summary>
     /// <returns>Result details for the bulk upsert</returns>
     /// <param name="dataStoreName">The name of the data store to bulk insert the records into</param>
     /// <param name="bulkUpsertRecordsDetailsWithFile">The details of the bulk upsert including the file and metadata</param>
     /// <response code="200">Result details for the bulk upsert</response>
     /// <response code="400">A bad request</response>
+    [Consumes("multipart/form-data")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(BulkUpsertRecordResults), 200)]
     [ProducesResponseType(typeof(ErrorMessages), 400)]
     [HttpPost("{dataStoreName}/BulkUpsertRecords", Name = "BulkUpsertRecords")]
-    [MultiPartFormDataWithFile("file", "The file to bulk upsert")]
-    public async Task<IActionResult> BulkUpsertRecords(string dataStoreName, BulkUpsertRecordsDetailsWithFile bulkUpsertRecordsDetailsWithFile)
+    public async Task<IActionResult> BulkUpsertRecords(string dataStoreName, [FromForm] BulkUpsertRecordsDetailsWithFile bulkUpsertRecordsDetailsWithFile)
     {
       if (string.IsNullOrEmpty(dataStoreName))
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoDataStoreNameProvided, "No data store name provided")));
@@ -90,8 +94,7 @@ namespace Apteco.PullMarketing.Api.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      List<ErrorMessage> errors;
-      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsDetailsWithFile.BulkUpsertRecordsDetails, out errors);
+      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, CreateBulkUpsertRecordsDetails(bulkUpsertRecordsDetailsWithFile), out List<ErrorMessage> errors);
       if (errors.Count > 0)
         return BadRequest(new ErrorMessages(errors));
 
@@ -112,13 +115,15 @@ namespace Apteco.PullMarketing.Api.Controllers
     }
 
     /// <summary>
-    /// Bulk upserts a set of record definied in a file on a file system accessable by the API
+    /// Bulk upserts a set of records defined in a file on a file system accessible by the API
     /// </summary>
     /// <returns>Result details for the bulk upsert</returns>
     /// <param name="dataStoreName">The name of the data store to bulk insert the records into</param>
     /// <param name="bulkUpsertRecordsFromFilePathDetails">The details of the bulk upsert</param>
     /// <response code="200">Result details for the bulk upsert</response>
     /// <response code="400">A bad request</response>
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(BulkUpsertRecordResults), 200)]
     [ProducesResponseType(typeof(ErrorMessages), 400)]
     [HttpPost("{dataStoreName}/BulkUpsertRecordsFromFilePath", Name = "BulkUpsertRecordsFromFilePath")]
@@ -133,8 +138,7 @@ namespace Apteco.PullMarketing.Api.Controllers
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
-      List<ErrorMessage> errors;
-      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsFromFilePathDetails, out errors);
+      UpsertDetails upsertDetails = CreateUpsertDetails(dataStoreName, bulkUpsertRecordsFromFilePathDetails, out List<ErrorMessage> errors);
       if (errors.Count > 0)
         return BadRequest(new ErrorMessages(errors));
 
@@ -163,10 +167,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="200">The record details</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The record couldn't be found</response>
-    [HttpGet("{dataStoreName}/{key}", Name = "GetRecord")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(Record), 200)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpGet("{dataStoreName}/{key}", Name = "GetRecord")]
     public async Task<IActionResult> GetRecord(string dataStoreName, string key)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -201,9 +207,11 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <param name="record">The details of the record to upsert</param>
     /// <response code="201">The upserted record details</response>
     /// <response code="400">A bad request</response>
-    [HttpPut("{dataStoreName}/{key}", Name = "UpsertRecord")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(Record), 201)]
     [ProducesResponseType(typeof(void), 400)]
+    [HttpPut("{dataStoreName}/{key}", Name = "UpsertRecord")]
     public async Task<IActionResult> UpsertRecord(string dataStoreName, string key, [FromBody]UpsertRecordDetails record)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -214,7 +222,6 @@ namespace Apteco.PullMarketing.Api.Controllers
 
       if (record == null)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoUpsertRecordDetailsSpecified, "No record details provided")));
-
 
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
@@ -245,10 +252,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="204">The record was deleted successfully</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The record couldn't be found</response>
-    [HttpDelete("{dataStoreName}/{key}", Name="DeleteRecord")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(void), 204)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpDelete("{dataStoreName}/{key}", Name = "DeleteRecord")]
     public async Task<IActionResult> DeleteRecord(string dataStoreName, string key)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -277,10 +286,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="200">The field details</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The record or the field name couldn't be found</response>
-    [HttpGet("{dataStoreName}/{key}/{fieldName}", Name = "GetRecordField")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(Field), 200)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpGet("{dataStoreName}/{key}/{fieldName}", Name = "GetRecordField")]
     public async Task<IActionResult> GetRecordField(string dataStoreName, string key, string fieldName)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -307,7 +318,7 @@ namespace Apteco.PullMarketing.Api.Controllers
 
       return new OkObjectResult(field);
     }
-    
+
     /// <summary>
     /// Upserts a particular field for the specified record
     /// </summary>
@@ -319,10 +330,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="201">The upserted field details</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The record couldn't be found</response>
-    [HttpPut("{dataStoreName}/{key}/{fieldName}", Name = "UpsertRecordField")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(Field), 201)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpPut("{dataStoreName}/{key}/{fieldName}", Name = "UpsertRecordField")]
     public async Task<IActionResult> UpsertRecordField(string dataStoreName, string key, string fieldName, [FromBody]string value)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -366,10 +379,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="204">The field was deleted from the specified record successfully</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The record or the field name couldn't be found</response>
-    [HttpDelete("{dataStoreName}/{key}/{fieldName}", Name = "DeleteRecordField")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(void), 204)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpDelete("{dataStoreName}/{key}/{fieldName}", Name = "DeleteRecordField")]
     public async Task<IActionResult> DeleteRecordField(string dataStoreName, string key, string fieldName)
     {
       if (string.IsNullOrEmpty(dataStoreName))
@@ -381,7 +396,6 @@ namespace Apteco.PullMarketing.Api.Controllers
       if (string.IsNullOrEmpty(fieldName))
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.NoFieldNameSpecified, "No field name provided")));
 
-
       if (!ModelState.IsValid)
         return BadRequest(new ErrorMessages(new ErrorMessage(ErrorMessageCodes.GeneralInvalidParameters, "Invalid parameters provided")));
 
@@ -392,6 +406,49 @@ namespace Apteco.PullMarketing.Api.Controllers
       return NoContent();
     }
 
+    #region private methods
+    private int ParseAsCharacter(string s)
+    {
+      if (string.IsNullOrWhiteSpace(s))
+        return 0;
+
+      switch (s.ToUpperInvariant().Trim())
+      {
+        case "NULL":
+        case "NUL":
+        case "NONE":
+          return '\0';
+        case "TAB":
+          return '\t';
+        case "SPACE":
+          return ' ';
+        case "COMMA":
+          return ',';
+        case "PIPE":
+          return '|';
+        default:
+          return s[0];
+      }
+    }
+
+    private BulkUpsertRecordsDetails CreateBulkUpsertRecordsDetails(BulkUpsertRecordsDetailsWithFile bulkUpsertRecordsDetailsWithFile)
+    {
+      BulkUpsertRecordsDetails bulkUpsertRecordsDetails = new BulkUpsertRecordsDetails();
+      bulkUpsertRecordsDetails.Delimiter = bulkUpsertRecordsDetailsWithFile.Delimiter;
+      bulkUpsertRecordsDetails.Encloser = bulkUpsertRecordsDetailsWithFile.Encloser;
+      bulkUpsertRecordsDetails.Encoding = bulkUpsertRecordsDetailsWithFile.Encoding;
+      bulkUpsertRecordsDetails.FieldMappings = new List<FieldMapping>();
+      for (int index = 0; index < bulkUpsertRecordsDetailsWithFile.SourceFieldNames.Count; index++)
+      {
+        FieldMapping fieldMapping = new FieldMapping();
+        fieldMapping.SourceFileFieldName = bulkUpsertRecordsDetailsWithFile.SourceFieldNames[index];
+        fieldMapping.DestinationRecordFieldName = bulkUpsertRecordsDetailsWithFile.DestinationFieldNames[index];
+        fieldMapping.IsPrimaryKeyField = fieldMapping.SourceFileFieldName == bulkUpsertRecordsDetailsWithFile.PrimaryKeyFieldName;
+        bulkUpsertRecordsDetails.FieldMappings.Add(fieldMapping);
+      }
+      return bulkUpsertRecordsDetails;
+    }
+
     private UpsertDetails CreateUpsertDetails(string dataStoreName, BulkUpsertRecordsDetails bulkUpsertRecordsDetails, out List<ErrorMessage> errors)
     {
       errors = new List<ErrorMessage>();
@@ -399,8 +456,8 @@ namespace Apteco.PullMarketing.Api.Controllers
       UpsertDetails upsertDetails = new UpsertDetails();
       upsertDetails.TableName = dataStoreName;
       upsertDetails.FileMetadata = new FileMetadata();
-      upsertDetails.FileMetadata.Delimiter = string.IsNullOrEmpty(bulkUpsertRecordsDetails.Delimiter)? 0 : bulkUpsertRecordsDetails.Delimiter[0];
-      upsertDetails.FileMetadata.Encloser = string.IsNullOrEmpty(bulkUpsertRecordsDetails.Encloser) ? 0 : bulkUpsertRecordsDetails.Encloser[0];
+      upsertDetails.FileMetadata.Delimiter = ParseAsCharacter(bulkUpsertRecordsDetails.Delimiter);
+      upsertDetails.FileMetadata.Encloser = ParseAsCharacter(bulkUpsertRecordsDetails.Encloser);
       upsertDetails.FileMetadata.Encoding = bulkUpsertRecordsDetails.Encoding.ToString();
       upsertDetails.FileMetadata.Header = true;
       upsertDetails.FileMetadata.MatchOnHeader = true;
@@ -430,5 +487,6 @@ namespace Apteco.PullMarketing.Api.Controllers
 
       return upsertDetails;
     }
+    #endregion
   }
 }

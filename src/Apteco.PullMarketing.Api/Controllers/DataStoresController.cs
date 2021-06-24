@@ -6,12 +6,9 @@ using ApiPager.AspNetCore;
 using ApiPager.Core;
 using ApiPager.Core.Models;
 using Apteco.PullMarketing.Data;
-using Apteco.PullMarketing.Data.Dynamo;
 using Apteco.PullMarketing.Api.Models;
 using Apteco.PullMarketing.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using DataStore = Apteco.PullMarketing.Api.Models.DataStores.DataStore;
 
 namespace Apteco.PullMarketing.Api.Controllers
@@ -37,12 +34,15 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <returns>Details for each defined data store</returns>
     /// <response code="200">The list of all data stores</response>
     /// <response code="400">A bad request</response>
-    [HttpGet("", Name = "GetDataStores")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(PagedResults<DataStore>), 200)]
     [ProducesResponseType(typeof(void), 400)]
     [CanFilterPageAndSort(new string[] { "Name", "PrimaryKeyFieldName" })]
+    [HttpGet("", Name = "GetDataStores")]
     public async Task<IActionResult> GetDataStores()
     {
+      Console.WriteLine("In GetDataStores");
       FilterPageAndSortInfo filterPageAndSortInfo = HttpContext.GetFilterPageAndSortInfo();
       IEnumerable<Data.Models.DataStore> dataStores = await dataService.GetDataStores(filterPageAndSortInfo);
 
@@ -62,9 +62,11 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <param name="dataStore">The details of the data store to create</param>
     /// <response code="201">The data store was created sucessfully</response>
     /// <response code="400">A bad request</response>
-    [HttpPost("", Name = "CreateDataStore")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(DataStore), 201)]
     [ProducesResponseType(typeof(void), 400)]
+    [HttpPost("", Name = "CreateDataStore")]
     public async Task<IActionResult> CreateDataStore([FromBody] DataStore dataStore)
     {
       if ((dataStore == null) || !ModelState.IsValid)
@@ -88,10 +90,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="200">The data store details</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The data store couldn't be found</response>
-    [HttpGet("{name}", Name = "GetDataStoreDetails")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(DataStore), 200)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpGet("{name}", Name = "GetDataStoreDetails")]
     public async Task<IActionResult> GetDataStoreDetails(string name)
     {
       if (string.IsNullOrEmpty(name) || !ModelState.IsValid)
@@ -103,7 +107,7 @@ namespace Apteco.PullMarketing.Api.Controllers
 
       return new OkObjectResult((DataStore) dataStore);
     }
-    
+
     /// <summary>
     /// Deletes the specified data store
     /// </summary>
@@ -112,10 +116,12 @@ namespace Apteco.PullMarketing.Api.Controllers
     /// <response code="204">The data store was deleted successfully</response>
     /// <response code="400">A bad request</response>
     /// <response code="404">The data store couldn't be found</response>
-    [HttpDelete("{name}", Name = "DeleteDataStore")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(void), 204)]
     [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
+    [HttpDelete("{name}", Name = "DeleteDataStore")]
     public async Task<IActionResult> DeleteDataStore(string name)
     {
       if (string.IsNullOrEmpty(name) || !ModelState.IsValid)

@@ -1,8 +1,6 @@
 ﻿using Apteco.PullMarketing.Data;
 using Apteco.PullMarketing.Api.Services;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Apteco.PullMarketing.Api.Test.TestHelpers
@@ -15,8 +13,8 @@ namespace Apteco.PullMarketing.Api.Test.TestHelpers
     #endregion
 
     #region public constructor
-    public TestStartup(IHostingEnvironment env, ILoggerFactory loggerFactory, TestConfiguration configuration)
-      : base(env, loggerFactory, configuration.Configuration)
+    public TestStartup(TestConfiguration configuration)
+      : base(configuration.Configuration)
     {
       MockDataService = new Mock<IDataService>();
       MockRoutingService = new Mock<IRoutingService>();

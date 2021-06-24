@@ -10,3 +10,4 @@
 /test/*/bin
 /src/Apteco.PullMarketing.Api/Apteco.PullMarketing.Api.csproj.user
 /src/Apteco.PullMarketing.Api/Properties/PublishProfiles/FolderProfile.pubxml.user
+/src/Apteco.PullMarketing.Api/appsettings.*.json

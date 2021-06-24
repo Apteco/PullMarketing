@@ -16,5 +16,6 @@
     NoFieldNameSpecified = 3004,
     NoFieldValueSpecified = 3005,
     NoUpsertRecordDetailsSpecified = 3006,
+    InvalidFilterValuesSpecified = 3007,
   }
 }
