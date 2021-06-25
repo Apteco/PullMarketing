@@ -44,7 +44,7 @@ namespace Apteco.PullMarketing.Api.Controllers
     [Produces("application/json")]
     [ProducesResponseType(typeof(PagedResults<Record>), 200)]
     [ProducesResponseType(typeof(void), 400)]
-    [CanFilterPageAndSort(new string[] { "Key" })]
+    [CanFilterPageAndSort(new string[] { "[Key]", "FieldKey" })]
     [HttpGet("{dataStoreName}", Name = "GetRecords")]
     public async Task<IActionResult> GetRecords(string dataStoreName)
     {

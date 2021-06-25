@@ -180,37 +180,31 @@ namespace Apteco.PullMarketing.Data.MSSQL
           $@"SELECT [{dataStore.PrimaryKeyFieldName}] AS [Key], [Key] AS FieldKey, [Value] AS FieldValue" + Environment.NewLine +
           $@"FROM [{dataStore.Name}]";
 
-        using IDataReader rdr = cmd.ExecuteReader(filterPageAndSortInfo, new string[] {"Key"}, "Key");
+        using IDataReader rdr = cmd.ExecuteReader(filterPageAndSortInfo, new string[] {"[Key]", "FieldKey"}, "[Key]");
 
-        List<Record> records = new List<Record>();
+        Dictionary<string, Record> recordsLookup = new Dictionary<string, Record>();
+        List<Record> recordsList = new List<Record>();
 
-        Record currentRecord = null;
         while (await dbAccess.Read(rdr))
         {
           string key = DatabaseUtilities.ConvertToString(rdr["Key"]);
-          if (currentRecord?.Key != key)
+          if (!recordsLookup.ContainsKey(key))
           {
-            if (currentRecord?.Key != null)
-              records.Add(currentRecord);
-            currentRecord = new Record
-            {
-              Key = key,
-              Fields = new List<Field>()
-            };
+            Record record = new Record {Key = key, Fields = new List<Field>()};
+            recordsLookup.Add(key, record);
+            recordsList.Add(record);
           }
 
-          currentRecord?.Fields?.Add(new Field
+          Record currentRecord = recordsLookup[key];
+          currentRecord.Fields.Add(new Field
           {
             Key = DatabaseUtilities.ConvertToString(rdr["FieldKey"]),
             Value = DatabaseUtilities.ConvertToString(rdr["FieldValue"])
           });
         }
 
-        if (currentRecord?.Key != null)
-          records.Add(currentRecord);
-
-        logger.LogInformation($"Found '{records.Count:N0}' records");
-        return records;
+        logger.LogInformation($"Found '{recordsList.Count:N0}' records");
+        return recordsList;
       }
       catch (Exception e)
       {
