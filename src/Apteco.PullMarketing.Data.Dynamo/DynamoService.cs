@@ -72,7 +72,7 @@ namespace Apteco.PullMarketing.Data.Dynamo
 				//Create the table
 				var createTableRequest = new CreateTableRequest();
 				createTableRequest.TableName = dataStore.Name;
-				createTableRequest.ProvisionedThroughput = new ProvisionedThroughput(5, 1000);
+				createTableRequest.BillingMode = BillingMode.PAY_PER_REQUEST;
 
 				//Set the attribute field
 				createTableRequest.AttributeDefinitions = new List<AttributeDefinition>();
